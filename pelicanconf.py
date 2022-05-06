@@ -27,5 +27,9 @@ SOCIAL = (('You can add links in your config file', '#'),
 
 DEFAULT_PAGINATION = 20
 
+STATIC_PATHS = ('images', 'misc')
+
+EXTRA_PATH_METADATA = {'misc/CNAME': {'path': 'CNAME'},}
+
 # Uncomment following line if you want document-relative URLs when developing
 #RELATIVE_URLS = True
