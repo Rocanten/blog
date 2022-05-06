@@ -1,64 +1,252 @@
 <!DOCTYPE html>
-<html lang="ru">
 <head>
-        <meta charset="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <meta name="generator" content="Pelican" />
-        <title>Блог Олега Прокофьева - Review</title>
-        <link rel="stylesheet" href="/theme/css/main.css" />
+    <meta charset="utf-8" />
+    <!-- Set the viewport width to device width for mobile -->
+    <meta name="viewport" content="width=device-width" />
+
+    <title>Блог Олега Прокофьева - Review</title>
+
+    <link rel="stylesheet" href="http://127.0.0.1:8000/theme/css/normalize.css" />
+    <link rel="stylesheet" href="http://127.0.0.1:8000/theme/css/foundation.min.css" />
+    <link rel="stylesheet" href="http://127.0.0.1:8000/theme/css/style.css" />
+    <link rel="stylesheet" href="http://127.0.0.1:8000/theme/css/pygments.css" />	
+    <script src="http://127.0.0.1:8000/theme/js/modernizr.js"></script>
 </head>
 
-<body id="index" class="home">
-        <header id="banner" class="body">
-                <h1><a href="/">Блог Олега Прокофьева</a></h1>
-                <nav><ul>
-                    <li class="active"><a href="/category/review.html">Review</a></li>
-                </ul></nav>
-        </header><!-- /#banner -->
+<body>
 
-            <aside id="featured" class="body">
-                <article>
-                    <h1 class="entry-title"><a href="/my-first-review.html">My First Review</a></h1>
-<footer class="post-info">
-        <abbr class="published" title="2010-12-03T10:20:00+03:00">
-                Published: пт 03 декабря 2010
-        </abbr>
+<!-- Nav Bar -->
+<nav>
+<div class="top-bar">
+<div class="row">
+    <div class="large-9 large-centered columns">
+	    <h1><a href="http://127.0.0.1:8000">Блог Олега Прокофьева</a></h1>
+    </div>
+</div>
+</div>
 
-        <address class="vcard author">
-                By                         <a class="url fn" href="/author/oleg-prokofev.html">Олег Прокофьев</a>
-        </address>
-<p>In <a href="/category/review.html">Review</a>.</p>
+<!-- Show menu items and pages -->
+<div class="row">
+<div class="large-9 columns">
+    <ul class="button-group navigation">
 
-</footer><!-- /.post-info --><h2>Title 1</h2>
-<p>Following is a review of my favorite mechanical keyboard.</p>                </article>
-            </aside><!-- /#featured -->
-        <section id="extras" class="body">
-                <div class="blogroll">
-                        <h2>links</h2>
-                        <ul>
-                            <li><a href="https://getpelican.com/">Pelican</a></li>
-                            <li><a href="https://www.python.org/">Python.org</a></li>
-                            <li><a href="https://palletsprojects.com/p/jinja/">Jinja2</a></li>
-                            <li><a href="#">You can modify those links in your config file</a></li>
-                        </ul>
-                </div><!-- /.blogroll -->
-                <div class="social">
-                        <h2>social</h2>
-                        <ul>
+    </ul>
+</div>
+</div>
+</nav>
+<!-- End Nav -->
 
-                            <li><a href="#">You can add links in your config file</a></li>
-                            <li><a href="#">Another social link</a></li>
-                        </ul>
-                </div><!-- /.social -->
-        </section><!-- /#extras -->
 
-        <footer id="contentinfo" class="body">
-                <address id="about" class="vcard body">
-                Proudly powered by <a href="https://getpelican.com/">Pelican</a>, which takes great advantage of <a href="https://www.python.org/">Python</a>.
-                </address><!-- /#about -->
+<!-- Main Page Content and Sidebar -->
+<div class="row">
 
-                <p>The theme is by <a href="https://www.smashingmagazine.com/2009/08/designing-a-html-5-layout-from-scratch/">Smashing Magazine</a>, thanks!</p>
-        </footer><!-- /#contentinfo -->
+    <!-- Main Blog Content -->
+    <div class="large-9 columns">
+        
+        
 
+            <article>
+                <a href="http://127.0.0.1:8000/my-first-review.html"><h3 class="article-title">My First&nbsp;Review</h3></a>
+<h6 class="subheader" title="2010-12-03T10:20:00+03:00">пт 03 декабря 2010
+</h6>
+
+
+<h1>An h1&nbsp;header</h1>
+<p>Paragraphs are separated by a blank&nbsp;line.</p>
+<p>2nd paragraph. <em>Italic</em>, <strong>bold</strong>, and <code>monospace</code>. Itemized lists
+look&nbsp;like:</p>
+<ul>
+<li>this&nbsp;one</li>
+<li>that&nbsp;one</li>
+<li>the other&nbsp;one</li>
+</ul>
+<p>Note that &#8212;- not considering the asterisk &#8212;- the actual text
+content starts at 4-columns&nbsp;in.</p>
+<blockquote>
+<p>Block quotes are
+written like&nbsp;so.</p>
+<p>They can span multiple paragraphs,
+if you&nbsp;like.</p>
+</blockquote>
+<p>Use 3 dashes for an em-dash. Use 2 dashes for ranges (ex., &#8220;it&#8217;s all
+in chapters 12&#8212;14&#8221;). Three dots &#8230; will be converted to an ellipsis.
+Unicode is supported.&nbsp;☺</p>
+<h2>An h2&nbsp;header</h2>
+<p>Here&#8217;s a numbered&nbsp;list:</p>
+<ol>
+<li>first&nbsp;item</li>
+<li>second&nbsp;item</li>
+<li>third&nbsp;item</li>
+</ol>
+<p>Note again how the actual text starts at 4 columns in (4 characters
+from the left side). Here&#8217;s a code&nbsp;sample:</p>
+<div class="highlight"><pre><span></span><code># <span class="nv">Let</span> <span class="nv">me</span> <span class="nv">re</span><span class="o">-</span><span class="nv">iterate</span> ...
+<span class="k">for</span> <span class="nv">i</span> <span class="nv">in</span> <span class="mi">1</span> .. <span class="mi">10</span> { <span class="k">do</span><span class="o">-</span><span class="nv">something</span><span class="ss">(</span><span class="nv">i</span><span class="ss">)</span> }
+</code></pre></div>
+
+<p>As you probably guessed, indented 4 spaces. By the way, instead of
+indenting the block, you can use delimited blocks, if you&nbsp;like:</p>
+<div class="highlight"><pre><span></span><code>define foobar() {
+    print &quot;Welcome to flavor country!&quot;;
+}
+</code></pre></div>
+
+<p>(which makes copying <span class="amp">&amp;</span> pasting easier). You can optionally mark the
+delimited block for Pandoc to syntax highlight&nbsp;it:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">time</span>
+<span class="c1"># Quick, count to ten!</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">):</span>
+    <span class="c1"># (but not *too* quick)</span>
+    <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.5</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+</code></pre></div>
+
+<h3>An h3&nbsp;header</h3>
+<p>Now a nested&nbsp;list:</p>
+<p>no 1. First, get these&nbsp;ingredients:</p>
+<div class="highlight"><pre><span></span><code>  * carrots
+  * celery
+  * lentils
+</code></pre></div>
+
+<ol>
+<li>
+<p>Boil some&nbsp;water.</p>
+</li>
+<li>
+<p>Dump everything in the pot and follow
+    this&nbsp;algorithm:</p>
+<div class="highlight"><pre><span></span><code><span class="nv">find</span> <span class="nv">wooden</span> <span class="nv">spoon</span>
+<span class="nv">uncover</span> <span class="nv">pot</span>
+<span class="nv">stir</span>
+<span class="nv">cover</span> <span class="nv">pot</span>
+<span class="nv">balance</span> <span class="nv">wooden</span> <span class="nv">spoon</span> <span class="nv">precariously</span> <span class="nv">on</span> <span class="nv">pot</span> <span class="nv">handle</span>
+<span class="k">wait</span> <span class="mi">10</span> <span class="nv">minutes</span>
+<span class="k">goto</span> <span class="nl">first</span> <span class="nv">step</span> <span class="ss">(</span><span class="nv">or</span> <span class="nv">shut</span> <span class="nv">off</span> <span class="nv">burner</span> <span class="nv">when</span> <span class="nv">done</span><span class="ss">)</span>
+</code></pre></div>
+
+<p>Do not bump wooden spoon or it will&nbsp;fall.</p>
+</li>
+</ol>
+<p>Notice again how text always lines up on 4-space indents (including
+that last line which continues item 3&nbsp;above).</p>
+<p>Here&#8217;s a link to <a href="http://foo.bar">a website</a>, to a <a href="local-doc.html">local
+doc</a>, and to a <a href="#an-h2-header">section heading in the current
+doc</a>. Here&#8217;s a footnote <sup id="fnref:1"><a class="footnote-ref" href="#fn:1">1</a></sup>.</p>
+<p>Tables can look like&nbsp;this:</p>
+<p>Name           Size  Material&nbsp;Color</p>
+<hr>
+<p>All Business      9  leather       brown
+Roundabout       10  hemp canvas   natural
+Cinderella       11  glass&nbsp;transparent</p>
+<p>Table: Shoes sizes, materials, and&nbsp;colors.</p>
+<p>(The above is the caption for the table.) Pandoc also supports
+multi-line&nbsp;tables:</p>
+<hr>
+<p>Keyword&nbsp;Text</p>
+<hr>
+<p>red       Sunsets, apples, and
+          other red or reddish&nbsp;things.</p>
+<p>green     Leaves, grass, frogs
+          and other things it&#8217;s
+          not easy&nbsp;being.</p>
+<hr>
+<p>A horizontal rule&nbsp;follows.</p>
+<hr>
+<p>Here&#8217;s a definition&nbsp;list:</p>
+<dl>
+<dt>apples</dt>
+<dd>Good for making&nbsp;applesauce.</dd>
+<dt>oranges</dt>
+<dd>Citrus!</dd>
+<dt>tomatoes</dt>
+<dd>There&#8217;s no &#8220;e&#8221; in&nbsp;tomatoe.</dd>
+</dl>
+<p>Again, text is indented 4 spaces. (Put a blank line between each
+term and  its definition to spread things out&nbsp;more.)</p>
+<p>Here&#8217;s a &#8220;line block&#8221; (note how whitespace is&nbsp;honored):</p>
+<p>| Line one
+|   Line too
+| Line&nbsp;tree</p>
+<p>and images can be specified like&nbsp;so:</p>
+<p><img alt="example image" src="example-image.jpg" title="An exemplary image"></p>
+<p>Inline math equation: $\omega = d\phi / dt$. Display
+math should get its own line like&nbsp;so:</p>
+<p>$$I = \int \rho R^{2}&nbsp;dV$$</p>
+<p>And note that you can backslash-escape any punctuation characters
+which you wish to be displayed literally, ex.: `foo`, *bar*,&nbsp;etc.</p>
+<div class="footnote">
+<hr>
+<ol>
+<li id="fn:1">
+<p>Some footnote text.&#160;<a class="footnote-backref" href="#fnref:1" title="Jump back to footnote 1 in the text">&#8617;</a></p>
+</li>
+</ol>
+</div><p class="subheader">Category: <a href="http://127.0.0.1:8000/category/review.html">Review</a>
+
+</p>
+
+
+
+            </article>
+
+<div class="pagination-centered">
+<h6 class="subheader">Page 1 of 1</h6>
+
+<p>
+
+</p>
+</div>
+
+
+
+            <!-- /#posts-list -->
+
+    </div>
+    <!-- End Main Content -->
+
+    <!-- Sidebar -->
+    <aside class="large-3 columns">
+      	<!--
+        <h5 class="sidebar-title">Site</h5>
+        <ul class="side-nav">
+            <li><a href="http://127.0.0.1:8000/archives.html">Archives</a>
+            <li><a href="http://127.0.0.1:8000/tags.html">Tags</a>
+        </ul>
+
+	
+		
+        <h5 class="sidebar-title">Категории</h5>
+        <ul class="side-nav">
+            <li><a href="http://127.0.0.1:8000/category/misc.html">misc</a></li>
+            <li><a href="http://127.0.0.1:8000/category/review.html">Review</a></li>
+   
+        </ul>
+
+	-->
+		
+        <h5 class="sidebar-title">Контакты</h5>
+        <ul class="side-nav">
+            <li><a href="https://telegram.org">Telegram</a></li>
+            <li><a href="https://facebook.com">Facebook</a></li>
+            <li><a href="https://instagram.com">Instagram</a></li>
+        </ul>
+
+    </aside> <!-- End Sidebar -->
+
+</div> <!-- End Main Content and Sidebar -->
+
+
+<!-- Footer -->
+<footer class="row">
+    <div class="large-12 columns">
+        <hr />
+        <div class="row">
+            <div class="large-6 columns">
+              <!--                  <p>Блог Олега Прокофьева by Олег Прокофьев</p> -->
+            </div>
+            </div>
+    </div>
+</footer>
 </body>
 </html>
