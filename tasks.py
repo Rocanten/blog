@@ -16,7 +16,7 @@ from pelican.settings import DEFAULT_CONFIG, get_settings_from_file
 OPEN_BROWSER_ON_SERVE = True
 SETTINGS_FILE_BASE = 'pelicanconf.py'
 SETTINGS = {}
-SETTINGS.update(DEFAULT_CONFIG)
+SETTINGS |= DEFAULT_CONFIG
 LOCAL_SETTINGS = get_settings_from_file(SETTINGS_FILE_BASE)
 SETTINGS.update(LOCAL_SETTINGS)
 
@@ -134,5 +134,5 @@ def publish(c):
 
 
 def pelican_run(cmd):
-    cmd += ' ' + program.core.remainder  # allows to pass-through args to pelican
+    cmd += f' {program.core.remainder}'
     pelican_main(shlex.split(cmd))
