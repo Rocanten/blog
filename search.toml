@@ -1,8 +1,0 @@
-[input]
-base_directory = "output"
-html_selector = "main"
-
-[[input.files]]
-path = "my-first-review.html"
-url = "my-first-review.html"
-title = "My First Review"
