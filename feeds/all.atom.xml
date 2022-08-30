@@ -1,140 +1,217 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>Пытаясь разобраться</title><link href="https://rocanten.ru/" rel="alternate"></link><link href="https://rocanten.ru/feeds/all.atom.xml" rel="self"></link><id>https://rocanten.ru/</id><updated>2010-12-19T10:20:00+03:00</updated><entry><title>Test2</title><link href="https://rocanten.ru/test2.html" rel="alternate"></link><published>2010-12-19T10:20:00+03:00</published><updated>2010-12-19T10:20:00+03:00</updated><author><name>Олег Прокофьев</name></author><id>tag:rocanten.ru,2010-12-19:/test2.html</id><summary type="html">&lt;h1&gt;Introduction&lt;/h1&gt;
-&lt;p&gt;Academic workflow, certainly in political science, is at a crossroads. The &lt;em&gt;American Journal of Political Science&lt;/em&gt; (&lt;em&gt;&lt;span class="caps"&gt;AJPS&lt;/span&gt;&lt;/em&gt;) announced a (my words) &lt;a href="http://ajps.org/2015/03/26/the-ajps-replication-policy-innovations-and-revisions/"&gt;&amp;#8220;show your work&amp;#8221; initiative&lt;/a&gt; in which authors who are tentatively accepted for publication at the journal must hand over the raw code and data that produced the results …&lt;/p&gt;</summary><content type="html">&lt;h1&gt;Introduction&lt;/h1&gt;
-&lt;p&gt;Academic workflow, certainly in political science, is at a crossroads. The &lt;em&gt;American Journal of Political Science&lt;/em&gt; (&lt;em&gt;&lt;span class="caps"&gt;AJPS&lt;/span&gt;&lt;/em&gt;) announced a (my words) &lt;a href="http://ajps.org/2015/03/26/the-ajps-replication-policy-innovations-and-revisions/"&gt;&amp;#8220;show your work&amp;#8221; initiative&lt;/a&gt; in which authors who are tentatively accepted for publication at the journal must hand over the raw code and data that produced the results shown in the manuscript. The editorial team at &lt;em&gt;&lt;span class="caps"&gt;AJPS&lt;/span&gt;&lt;/em&gt; then reproduces the code from the manuscript. Pending successful replication, the manuscript moves toward publication. The &lt;em&gt;&lt;span class="caps"&gt;AJPS&lt;/span&gt;&lt;/em&gt; might be at the fore of this movement, and it could be the most aggressive among political science journals, but other journals in our field have signed the joint &lt;a href="http://www.dartstatement.org/"&gt;Data Access &lt;span class="amp"&gt;&amp;amp;&lt;/span&gt; Research Transparency&lt;/a&gt; (&lt;span class="caps"&gt;DART&lt;/span&gt;) initiative. This, at a bare minimum, requires uploading code from quantitatively-oriented published articles to in-house directories hosted by the journal or to services like &lt;a href="http://dataverse.org/"&gt;Dataverse&lt;/a&gt;. &lt;/p&gt;
-&lt;p&gt;There are workflow implications to the Lacour controversy as well. Political science, for the foreseeable future, will struggle with the extent of &lt;a href="http://stanford.edu/~dbroock/broockman_kalla_aronow_lg_irregularities.pdf"&gt;the data fraud perpetrated by Michael Lacour&lt;/a&gt; in an article co-authored with Donald P. Green in &lt;em&gt;Science&lt;/em&gt;, the general scientific journal of record in the United States. A failure to reproduce LaCour&amp;#8217;s results with different samples uncovered a comprehensive effort by LaCour to &amp;#8220;fake&amp;#8221; data that provided results to what we felt or believed to be true &lt;a href="http://chronicle.com/article/LAffaire-LaCour/230905/"&gt;(i.e. &amp;#8220;truthiness&amp;#8221;)&lt;/a&gt;. However, &lt;a href="http://kieranhealy.org/blog/archives/2015/05/20/fake-science-real-consequences/"&gt;fake data can have real consequences&lt;/a&gt; for both the researcher and those who want to learn from it and use it for various purposes. Even research done honestly may suffer the same fate if researchers are not diligent in their&amp;nbsp;workflow.&lt;/p&gt;
-&lt;p&gt;These recent events underscore the &lt;span class="caps"&gt;DART&lt;/span&gt; push and cast a shadow over our workflow. However, good workflow has always been an issue in our discipline. Cloud storage services like &lt;a href="http://www.dropbox.com"&gt;Dropbox&lt;/a&gt; are still relatively new among political scientists. Without cloud storage, previous workflow left open the possibility that work between a home computer and an office computer was lost as a function of a corrupted thumb drive, an overheated power supply, or, among other things, the wave of viruses that &lt;a href="http://money.cnn.com/2003/11/05/technology/microsoftbounty/"&gt;would particularly affect Microsoft users every summer&lt;/a&gt;. Social sciences, &lt;a href="http://kieranhealy.org/blog/archives/2014/01/23/plain-text/"&gt;unlike engineering&lt;/a&gt;, have traditionally relied on software like Microsoft Word for manuscript preparation though any word processor reduces workflow to a series of clicks and strokes on a keyboard. This is &lt;a href="http://www.nytimes.com/2013/04/19/opinion/krugman-the-excel-depression.html"&gt;a terrible way to track changes&lt;/a&gt; or maintain version control. The addition of collaborators only compounds all the aforementioned issues. The proverbial left hand may not know what the right hand is&amp;nbsp;doing.&lt;/p&gt;
-&lt;p&gt;I think there is reason for optimism. We only struggle with it now because we have tools like &lt;a href="http://rmarkdown.rstudio.com/"&gt;R Markdown&lt;/a&gt; and &lt;a href="http://pandoc.org/"&gt;Pandoc&lt;/a&gt;, more generally, that make significant strides in workflow. LaTeX resolved earlier issues of corrupted binary files by reducing documents to raw markup that was little more than raw text and revisions that could be easily kept as &lt;a href="http://tex.stackexchange.com/questions/11177/how-to-write-hidden-notes-in-a-latex-file"&gt;&amp;#8220;commented&amp;#8221; text&lt;/a&gt;. However, for all its benefits (including pretty PDFs), &lt;a href="http://www-rohan.sdsu.edu/~aty/bibliog/latex/gripe.html"&gt;LaTeX is &lt;em&gt;ugly&lt;/em&gt; code&lt;/a&gt; and does not provide means of seamlessly working with the actual data analysis itself. R Markdown both eliminates markup and allows the author and her collaborators to write and reproduce the manuscript in one fell&amp;nbsp;swoop.&lt;/p&gt;
-&lt;h1&gt;Getting Started with &lt;span class="caps"&gt;YAML&lt;/span&gt;&lt;/h1&gt;
-&lt;p&gt;The lion&amp;#8217;s share of a R Markdown document will be raw text, though the front matter may be the most important part of the document. R Markdown uses &lt;a href="http://www.yaml.org/"&gt;&lt;span class="caps"&gt;YAML&lt;/span&gt;&lt;/a&gt; for its metadata and the fields differ from &lt;a href="http://svmiller.com/blog/2015/02/moving-from-beamer-to-r-markdown/"&gt;what an author would use for a Beamer presentation&lt;/a&gt;. I provide a sample &lt;span class="caps"&gt;YAML&lt;/span&gt; metadata largely taken from this exact document and explain it&amp;nbsp;below.&lt;/p&gt;</content><category term="misc"></category></entry><entry><title>My First Review</title><link href="https://rocanten.ru/my-first-review.html" rel="alternate"></link><published>2010-12-03T10:20:00+03:00</published><updated>2010-12-03T10:20:00+03:00</updated><author><name>Олег Прокофьев</name></author><id>tag:rocanten.ru,2010-12-03:/my-first-review.html</id><summary type="html">&lt;p&gt;Short version for index and&amp;nbsp;feeds&lt;/p&gt;</summary><content type="html">&lt;h1&gt;An h1&amp;nbsp;header&lt;/h1&gt;
-&lt;p&gt;Paragraphs are separated by a blank&amp;nbsp;line.&lt;/p&gt;
-&lt;p&gt;2nd paragraph. &lt;em&gt;Italic&lt;/em&gt;, &lt;strong&gt;bold&lt;/strong&gt;, and &lt;code&gt;monospace&lt;/code&gt;. Itemized lists
-look&amp;nbsp;like:&lt;/p&gt;
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Пытаясь разобраться</title><link href="https://rocanten.ru/" rel="alternate"></link><link href="https://rocanten.ru/feeds/all.atom.xml" rel="self"></link><id>https://rocanten.ru/</id><updated>2022-08-31T00:45:00+03:00</updated><entry><title>Автоматический деплой FastAPI в Яндекс Облако при помощи Github Actions и Docker</title><link href="https://rocanten.ru/avtomaticheskii-deploi-fastapi-v-iandeks-oblako-pri-pomoshchi-github-actions-i-docker.html" rel="alternate"></link><published>2022-08-31T00:45:00+03:00</published><updated>2022-08-31T00:45:00+03:00</updated><author><name>Олег Прокофьев</name></author><id>tag:rocanten.ru,2022-08-31:/avtomaticheskii-deploi-fastapi-v-iandeks-oblako-pri-pomoshchi-github-actions-i-docker.html</id><summary type="html">&lt;p&gt;Пошаговый разбор билда и деплоя приложения FastAPI при помощи Docker и Github&amp;nbsp;Actions&lt;/p&gt;</summary><content type="html">&lt;p&gt;При помощи данного рецепта можно значительно упростить себе жизнь и настроить автодеплой в Яндекс Облако(да и в любое другое облако) приложения на основе&amp;nbsp;FastAPI.&lt;/p&gt;
+&lt;p&gt;Общая схема&amp;nbsp;процесса:&lt;/p&gt;
+&lt;p&gt;&lt;img alt="deploy-github-yandex.png" src="%D0%90%D0%B2%D1%82%D0%BE%D0%BC%D0%B0%D1%82%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%B8%D0%B8%CC%86%20%D0%B4%D0%B5%D0%BF%D0%BB%D0%BE%D0%B8%CC%86%20FastAPI%20%D0%B2%20%D0%AF%D0%BD%D0%B4%D0%B5%D0%BA%D1%81%20%D0%9E%D0%B1%D0%BB%D0%B0%D0%BA%D0%BE%20%D0%BF%D1%80%20abffb457645545fabb86d9121889854d/deploy-github-yandex.png"&gt;&lt;/p&gt;
+&lt;h2&gt;1. Минимальное приложение&amp;nbsp;FastAPI&lt;/h2&gt;
+&lt;p&gt;Мы будем рассматривать процесс деплоя на примере базового приложения FastAPI. Ниже его&amp;nbsp;код.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;fastapi&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;FastAPI&lt;/span&gt;
+
+&lt;span class="n"&gt;app&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;FastAPI&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+
+&lt;span class="nd"&gt;@app&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;get&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;/hello&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;say_hello&lt;/span&gt;&lt;span class="p"&gt;():&lt;/span&gt;
+    &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;Hello&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;World&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Наше минимальное приложение делает&amp;nbsp;следующее:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;Импортирует FastAPI (его сначала надо установить &lt;a href="https://fastapi.tiangolo.com/#installation"&gt;https://fastapi.tiangolo.com/#installation&lt;/a&gt;)&lt;/li&gt;
+&lt;li&gt;Создаем приложение&amp;nbsp;FastAPI&lt;/li&gt;
+&lt;li&gt;Определяем один ресурс нашего api &lt;span class="caps"&gt;GET&lt;/span&gt;&amp;nbsp;/hello&lt;/li&gt;
+&lt;li&gt;Данный ресурс обрабатывается функцией say_hello(), которая возвращает наш json {&amp;#8220;Hello&amp;#8221;:&amp;nbsp;&amp;#8220;World&amp;#8221;}&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;Подробнее про FastAPI можно почитать в официальной документации &lt;a href="https://fastapi.tiangolo.com/tutorial/"&gt;https://fastapi.tiangolo.com/tutorial/&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;Запустить и протестировать наше приложение можно командой uvicorn&amp;nbsp;main:app.&lt;/p&gt;
+&lt;h2&gt;2. Упаковываем приложение в&amp;nbsp;Docker&lt;/h2&gt;
+&lt;p&gt;Для того, чтобы деплоить автоматически и не задумываться что там может пойти не так, нам нужно упаковать наше приложение в Docker образ из которого мы сможем деплоить куда&amp;nbsp;угодно.&lt;/p&gt;
+&lt;p&gt;Я предпочитаю всегда работать с Docker контейнерами, даже во время разработки на локальной машине. Это позволяет не засорять свою ОС различным софтом, пакетами и прочими зависимостями, а также я всегда уверен, что мое приложение в любой момент без проблем&amp;nbsp;задеплоится.&lt;/p&gt;
+&lt;p&gt;Итак, создадим наш Dockerfile в корне&amp;nbsp;проекта. &lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;FROM python:3.9&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="l l-Scalar l-Scalar-Plain"&gt;WORKDIR /code&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="l l-Scalar l-Scalar-Plain"&gt;COPY ./requirements.txt /code/requirements.txt&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="l l-Scalar l-Scalar-Plain"&gt;RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="l l-Scalar l-Scalar-Plain"&gt;COPY . /code&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="l l-Scalar l-Scalar-Plain"&gt;RUN [&amp;quot;python&amp;quot;, &amp;quot;-m&amp;quot;, &amp;quot;pytest&amp;quot;]&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="l l-Scalar l-Scalar-Plain"&gt;CMD [&amp;quot;uvicorn&amp;quot;, &amp;quot;app.main:app&amp;quot;, &amp;quot;--host&amp;quot;, &amp;quot;0.0.0.0&amp;quot;, &amp;quot;--port&amp;quot;, &amp;quot;8080&amp;quot;, &amp;quot;--reload&amp;quot;]&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Разберем каждую&amp;nbsp;строку.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;FROM python:3.9&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;WORKDIR /code&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;COPY ./requirements.txt /code/requirements.txt&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;COPY . /code&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;RUN [&amp;quot;python&amp;quot;, &amp;quot;-m&amp;quot;, &amp;quot;pytest&amp;quot;]&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;CMD [&amp;quot;uvicorn&amp;quot;, &amp;quot;app.main:app&amp;quot;, &amp;quot;--host&amp;quot;, &amp;quot;0.0.0.0&amp;quot;, &amp;quot;--port&amp;quot;, &amp;quot;8080&amp;quot;, &amp;quot;--reload&amp;quot;]&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Теперь можно локально собрать наш образ&amp;nbsp;командой&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;docker build -t helloapi .&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;И далее запустить&amp;nbsp;контейнер:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;docker run -p 8080:8080 --name helloapi-container -v &amp;quot;${path}:/code&amp;quot; helloapi&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Подробнее о Dockerfile и работе с контейнерами читаем в официальном туториале: &lt;a href="https://docs.docker.com/get-started/"&gt;https://docs.docker.com/get-started/&lt;/a&gt;&lt;/p&gt;
+&lt;h2&gt;3. Создаем конфигурацию workflows для Github&amp;nbsp;Actions&lt;/h2&gt;
+&lt;p&gt;Github Actions подхватывает файл с названием ветки,  например для main:&amp;nbsp;.github/workflows/main.yml&lt;/p&gt;
+&lt;p&gt;В этом файле должны быть описаны все jobs и соответствующие им шаги. У нас будет два “джоба”: build и&amp;nbsp;deploy.&lt;/p&gt;
+&lt;p&gt;Итак, весь&amp;nbsp;файл:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="nt"&gt;name&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;ci&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+
+&lt;span class="nt"&gt;on&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="nt"&gt;push&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="nt"&gt;branches&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;      &lt;/span&gt;&lt;span class="p p-Indicator"&gt;-&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s"&gt;&amp;#39;main&amp;#39;&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+
+&lt;span class="nt"&gt;jobs&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="nt"&gt;build&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="nt"&gt;runs-on&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;ubuntu-latest&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="nt"&gt;steps&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;      &lt;/span&gt;&lt;span class="p p-Indicator"&gt;-&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;        &lt;/span&gt;&lt;span class="nt"&gt;name&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;Checkout&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;        &lt;/span&gt;&lt;span class="nt"&gt;uses&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;actions/checkout@v2&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;      &lt;/span&gt;&lt;span class="p p-Indicator"&gt;-&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;        &lt;/span&gt;&lt;span class="nt"&gt;name&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;Yandex Cloud login&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;        &lt;/span&gt;&lt;span class="nt"&gt;uses&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;yc-actions/yc-cr-login@v1&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;        &lt;/span&gt;&lt;span class="nt"&gt;with&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;          &lt;/span&gt;&lt;span class="nt"&gt;yc-sa-json-credentials&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;${{ secrets.YC_SA_JSON_CREDENTIALS }}&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;      &lt;/span&gt;&lt;span class="p p-Indicator"&gt;-&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;        &lt;/span&gt;&lt;span class="nt"&gt;name&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;Build, tag, and push image to Yandex Cloud Container Registry&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;        &lt;/span&gt;&lt;span class="nt"&gt;env&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;          &lt;/span&gt;&lt;span class="nt"&gt;CR_REGISTRY&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;${{secrets.YANDEX_REGISTRY_ID}}&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;          &lt;/span&gt;&lt;span class="nt"&gt;CR_REPO&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;${{secrets.YANDEX_REPO_NAME}}&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;          &lt;/span&gt;&lt;span class="nt"&gt;IMAGE_TAG&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;${{ github.sha }}&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;          &lt;/span&gt;&lt;span class="nt"&gt;VM_ID&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;${{secrets.VM_ID}}&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;        &lt;/span&gt;&lt;span class="nt"&gt;run&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p p-Indicator"&gt;|&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;          &lt;/span&gt;&lt;span class="no"&gt;docker build -t cr.yandex/$CR_REGISTRY/$CR_REPO:$IMAGE_TAG .&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;          &lt;/span&gt;&lt;span class="no"&gt;docker push cr.yandex/$CR_REGISTRY/$CR_REPO:$IMAGE_TAG&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="nt"&gt;deploy&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="nt"&gt;needs&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;build&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="nt"&gt;runs-on&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;ubuntu-latest&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="nt"&gt;steps&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;      &lt;/span&gt;&lt;span class="p p-Indicator"&gt;-&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nt"&gt;name&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;Deploy to server via ssh&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;        &lt;/span&gt;&lt;span class="nt"&gt;uses&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;appleboy/ssh-action@master&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;        &lt;/span&gt;&lt;span class="nt"&gt;with&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;          &lt;/span&gt;&lt;span class="nt"&gt;host&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;${{ secrets.HOST }}&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;          &lt;/span&gt;&lt;span class="nt"&gt;username&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;${{ secrets.USERNAME }}&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;          &lt;/span&gt;&lt;span class="nt"&gt;key&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;${{ secrets.KEY }}&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;          &lt;/span&gt;&lt;span class="nt"&gt;port&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;${{ secrets.PORT }}&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;          &lt;/span&gt;&lt;span class="nt"&gt;script&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p p-Indicator"&gt;|&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;            &lt;/span&gt;&lt;span class="no"&gt;sudo docker pull cr.yandex/${{secrets.YANDEX_REGISTRY_ID}}/${{secrets.YANDEX_REPO_NAME}}:${{github.sha}}&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;            &lt;/span&gt;&lt;span class="no"&gt;sudo docker rm -f ${{secrets.PROJECT_NAME}}&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;            &lt;/span&gt;&lt;span class="no"&gt;sudo docker run -d -p 8080:8080 --name ${{secrets.PROJECT_NAME}} --hostname backend -e JIRA_SERVER_PERSONAL_TOKEN=${{secrets.JIRA_SERVER_PERSONAL_TOKEN}} -e JIRA_SERVER_BASE_URL=${{secrets.JIRA_SERVER_BASE_URL}} -e SERVICE_ADDRESS=${{secrets.SERVICE_ADDRESS}}  -e MATTERMOST_BASE_URL=${{secrets.MATTERMOST_BASE_URL}} -e MATTERMOST_TOKEN=${{secrets.MATTERMOST_TOKEN}} -e YANDEX_CONNECT_BASE_URL=${{secrets.YANDEX_CONNECT_BASE_URL}} -e YANDEX_ORG_ID=${{secrets.YANDEX_ORG_ID}} -e YANDEX_TOKEN=${{secrets.YANDEX_TOKEN}}  -e YANDEX_TRACKER_BASE_URL=${{secrets.YANDEX_TRACKER_BASE_URL}} cr.yandex/${{secrets.YANDEX_REGISTRY_ID}}/${{secrets.YANDEX_REPO_NAME}}:${{github.sha}}  &lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;            &lt;/span&gt;&lt;span class="no"&gt;sudo docker network connect network hippas-backend&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Рассмотрим&amp;nbsp;подробно.&lt;/p&gt;
+&lt;h3&gt;Trigger&lt;/h3&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="nt"&gt;on&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="nt"&gt;push&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="nt"&gt;branches&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;      &lt;/span&gt;&lt;span class="p p-Indicator"&gt;-&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s"&gt;&amp;#39;main&amp;#39;&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h3&gt;Build&amp;nbsp;Job&lt;/h3&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="nt"&gt;jobs&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="nt"&gt;build&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="nt"&gt;runs-on&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;ubuntu-latest&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="p p-Indicator"&gt;-&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;        &lt;/span&gt;&lt;span class="nt"&gt;name&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;Checkout&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;        &lt;/span&gt;&lt;span class="nt"&gt;uses&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;actions/checkout@v2&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="p p-Indicator"&gt;-&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;        &lt;/span&gt;&lt;span class="nt"&gt;name&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;Yandex Cloud login&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;        &lt;/span&gt;&lt;span class="nt"&gt;uses&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;yc-actions/yc-cr-login@v1&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;        &lt;/span&gt;&lt;span class="nt"&gt;with&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;          &lt;/span&gt;&lt;span class="nt"&gt;yc-sa-json-credentials&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;${{ secrets.YC_SA_JSON_CREDENTIALS }}&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p p-Indicator"&gt;-&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;        &lt;/span&gt;&lt;span class="nt"&gt;name&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;Build, tag, and push image to Yandex Cloud Container Registry&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;        &lt;/span&gt;&lt;span class="nt"&gt;env&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;          &lt;/span&gt;&lt;span class="nt"&gt;CR_REGISTRY&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;${{secrets.YANDEX_REGISTRY_ID}}&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;          &lt;/span&gt;&lt;span class="nt"&gt;CR_REPO&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;${{secrets.YANDEX_REPO_NAME}}&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;          &lt;/span&gt;&lt;span class="nt"&gt;IMAGE_TAG&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;${{ github.sha }}&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;          &lt;/span&gt;&lt;span class="nt"&gt;VM_ID&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;${{secrets.VM_ID}}&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;        &lt;/span&gt;&lt;span class="nt"&gt;run&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p p-Indicator"&gt;|&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;          &lt;/span&gt;&lt;span class="no"&gt;docker build -t cr.yandex/$CR_REGISTRY/$CR_REPO:$IMAGE_TAG .&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;          &lt;/span&gt;&lt;span class="no"&gt;docker push cr.yandex/$CR_REGISTRY/$CR_REPO:$IMAGE_TAG&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;docker build -t cr.yandex/&lt;span class="nv"&gt;$CR_REGISTRY&lt;/span&gt;/&lt;span class="nv"&gt;$CR_REPO&lt;/span&gt;:&lt;span class="nv"&gt;$IMAGE_TAG&lt;/span&gt; .
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;docker push cr.yandex/&lt;span class="nv"&gt;$CR_REGISTRY&lt;/span&gt;/&lt;span class="nv"&gt;$CR_REPO&lt;/span&gt;:&lt;span class="nv"&gt;$IMAGE_TAG&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h3&gt;Deploy&amp;nbsp;Job&lt;/h3&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nt"&gt;deploy&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="nt"&gt;needs&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;build&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="nt"&gt;runs-on&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;ubuntu-latest&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="nt"&gt;steps&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;      &lt;/span&gt;&lt;span class="p p-Indicator"&gt;-&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nt"&gt;name&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;Deploy to server via ssh&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;        &lt;/span&gt;&lt;span class="nt"&gt;uses&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;appleboy/ssh-action@master&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Далее мы выполняем команды на нашем&amp;nbsp;сервере.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;sudo docker pull cr.yandex/&lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="p"&gt;{secrets.YANDEX_REGISTRY_ID&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="o"&gt;}&lt;/span&gt;/&lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="p"&gt;{secrets.YANDEX_REPO_NAME&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="o"&gt;}&lt;/span&gt;:&lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="p"&gt;{github.sha&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="o"&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;sudo docker rm -f &lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="p"&gt;{secrets.PROJECT_NAME&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="o"&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;sudo docker run -d -p &lt;span class="m"&gt;8080&lt;/span&gt;:8080 --name &lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="p"&gt;{secrets.PROJECT_NAME&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="o"&gt;}&lt;/span&gt;  cr.yandex/&lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="p"&gt;{secrets.YANDEX_REGISTRY_ID&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="o"&gt;}&lt;/span&gt;/&lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="p"&gt;{secrets.YANDEX_REPO_NAME&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="o"&gt;}&lt;/span&gt;:&lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="p"&gt;{github.sha&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="o"&gt;}&lt;/span&gt;  
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Вот и все, настройка на уровне кода закончена. Осталось настроить&amp;nbsp;сервисы.&lt;/p&gt;
+&lt;p&gt;Но сначала надо почитать документацию по Github Actions: &lt;a href="https://docs.github.com/en/actions/using-workflows/about-workflows"&gt;https://docs.github.com/en/actions/using-workflows/about-workflows&lt;/a&gt;&lt;/p&gt;
+&lt;h2&gt;4. Настройка Яндекс&amp;nbsp;Облака&lt;/h2&gt;
+&lt;p&gt;Здесь все достаточно просто. Нам нужно создать виртуальную машину на основе Ubuntu и установить на нее Docker. При создании машины нужно также создать сервисный аккаунт и сохранить приватный ключ для доступа к&amp;nbsp;ВМ.&lt;/p&gt;
+&lt;p&gt;Также необходимо сохранить следующие&amp;nbsp;данные:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;Идентификатор виртуальной&amp;nbsp;машины&lt;/li&gt;
+&lt;li&gt;&lt;span class="caps"&gt;ID&lt;/span&gt; yandex docker&amp;nbsp;registry&lt;/li&gt;
+&lt;li&gt;Приватный ключ для доступа к&amp;nbsp;ВМ&lt;/li&gt;
+&lt;li&gt;&lt;span class="caps"&gt;JSON&lt;/span&gt;  с данными авторизации сервисного&amp;nbsp;аккаунта&lt;/li&gt;
+&lt;li&gt;Название репозитория docker&amp;nbsp;образов&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;Последний можно получить воспользовавшись инструкцией: &lt;a href="https://cloud.yandex.ru/docs/cli/operations/authentication/service-account"&gt;https://cloud.yandex.ru/docs/cli/operations/authentication/service-account&lt;/a&gt;&lt;/p&gt;
+&lt;h2&gt;5. Настройка&amp;nbsp;Github&lt;/h2&gt;
+&lt;p&gt;В Gihub нужно настроить секреты, которые будут использованы при билде и&amp;nbsp;деплое.&lt;/p&gt;
+&lt;aside&gt;
+💡 Крайне важно помнить, что нужно хранить в секретах репозитория все внешние данные(например, пароли, урлы и тд). Хранить их в коде - плохая идея.
+
+&lt;/aside&gt;
+
+&lt;p&gt;Настроить секреты можно в разделе Settings→Secrets→Actions репозитория на&amp;nbsp;Github.&lt;/p&gt;
+&lt;p&gt;Параметров надо указать много, так что перечислю их все списком с&amp;nbsp;пояснениями:&lt;/p&gt;
 &lt;ul&gt;
-&lt;li&gt;this&amp;nbsp;one&lt;/li&gt;
-&lt;li&gt;that&amp;nbsp;one&lt;/li&gt;
-&lt;li&gt;the other&amp;nbsp;one&lt;/li&gt;
+&lt;li&gt;YC_SA_JSON_CREDENTIALS - json key, полученный на шаге&amp;nbsp;4&lt;/li&gt;
+&lt;li&gt;YANDEX_REGISTRY_ID - id docker репозитория яндекс&amp;nbsp;облака&lt;/li&gt;
+&lt;li&gt;YANDEX_REPO_NAME - название репозитория docker образов яндекс&amp;nbsp;облака&lt;/li&gt;
+&lt;li&gt;VM_ID - id виртуальной машины в Яндекс&amp;nbsp;Облаке&lt;/li&gt;
+&lt;li&gt;PROJECT_NAME - название&amp;nbsp;проекта&lt;/li&gt;
 &lt;/ul&gt;
-&lt;p&gt;Note that &amp;#8212;- not considering the asterisk &amp;#8212;- the actual text
-content starts at 4-columns&amp;nbsp;in.&lt;/p&gt;
-&lt;blockquote&gt;
-&lt;p&gt;Block quotes are
-written like&amp;nbsp;so.&lt;/p&gt;
-&lt;p&gt;They can span multiple paragraphs,
-if you&amp;nbsp;like.&lt;/p&gt;
-&lt;/blockquote&gt;
-&lt;p&gt;Use 3 dashes for an em-dash. Use 2 dashes for ranges (ex., &amp;#8220;it&amp;#8217;s all
-in chapters 12&amp;#8212;14&amp;#8221;). Three dots &amp;#8230; will be converted to an ellipsis.
-Unicode is supported.&amp;nbsp;☺&lt;/p&gt;
-&lt;h2&gt;An h2&amp;nbsp;header&lt;/h2&gt;
-&lt;p&gt;Here&amp;#8217;s a numbered&amp;nbsp;list:&lt;/p&gt;
-&lt;ol&gt;
-&lt;li&gt;first&amp;nbsp;item&lt;/li&gt;
-&lt;li&gt;second&amp;nbsp;item&lt;/li&gt;
-&lt;li&gt;third&amp;nbsp;item&lt;/li&gt;
-&lt;/ol&gt;
-&lt;p&gt;Note again how the actual text starts at 4 columns in (4 characters
-from the left side). Here&amp;#8217;s a code&amp;nbsp;sample:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;#&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nv"&gt;Let&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nv"&gt;me&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nv"&gt;re&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="nv"&gt;iterate&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;...&lt;span class="w"&gt;&lt;/span&gt;
-&lt;span class="k"&gt;for&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nv"&gt;i&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nv"&gt;in&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;..&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="mi"&gt;10&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;{&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;do&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="nv"&gt;something&lt;/span&gt;&lt;span class="ss"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;i&lt;/span&gt;&lt;span class="ss"&gt;)&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;}&lt;span class="w"&gt;&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;As you probably guessed, indented 4 spaces. By the way, instead of
-indenting the block, you can use delimited blocks, if you&amp;nbsp;like:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;define foobar() {
-    print &amp;quot;Welcome to flavor country!&amp;quot;;
-}
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;(which makes copying &lt;span class="amp"&gt;&amp;amp;&lt;/span&gt; pasting easier). You can optionally mark the
-delimited block for Pandoc to syntax highlight&amp;nbsp;it:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;time&lt;/span&gt;
-&lt;span class="c1"&gt;# Quick, count to ten!&lt;/span&gt;
-&lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="nb"&gt;range&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;10&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
-    &lt;span class="c1"&gt;# (but not *too* quick)&lt;/span&gt;
-    &lt;span class="n"&gt;time&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;sleep&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mf"&gt;0.5&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-    &lt;span class="nb"&gt;print&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;h3&gt;An h3&amp;nbsp;header&lt;/h3&gt;
-&lt;p&gt;Now a nested&amp;nbsp;list:&lt;/p&gt;
-&lt;p&gt;no 1. First, get these&amp;nbsp;ingredients:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;  * carrots
-  * celery
-  * lentils
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;ol&gt;
-&lt;li&gt;
-&lt;p&gt;Boil some&amp;nbsp;water.&lt;/p&gt;
-&lt;/li&gt;
-&lt;li&gt;
-&lt;p&gt;Dump everything in the pot and follow
-    this&amp;nbsp;algorithm:&lt;/p&gt;
-&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="nv"&gt;find&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nv"&gt;wooden&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nv"&gt;spoon&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
-&lt;span class="nv"&gt;uncover&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nv"&gt;pot&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
-&lt;span class="nv"&gt;stir&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
-&lt;span class="nv"&gt;cover&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nv"&gt;pot&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
-&lt;span class="nv"&gt;balance&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nv"&gt;wooden&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nv"&gt;spoon&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nv"&gt;precariously&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nv"&gt;on&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nv"&gt;pot&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nv"&gt;handle&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
-&lt;span class="k"&gt;wait&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="mi"&gt;10&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nv"&gt;minutes&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
-&lt;span class="k"&gt;goto&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nl"&gt;first&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nv"&gt;step&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="ss"&gt;(&lt;/span&gt;&lt;span class="nv"&gt;or&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nv"&gt;shut&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nv"&gt;off&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nv"&gt;burner&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nv"&gt;when&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nv"&gt;done&lt;/span&gt;&lt;span class="ss"&gt;)&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;Do not bump wooden spoon or it will&amp;nbsp;fall.&lt;/p&gt;
-&lt;/li&gt;
-&lt;/ol&gt;
-&lt;p&gt;Notice again how text always lines up on 4-space indents (including
-that last line which continues item 3&amp;nbsp;above).&lt;/p&gt;
-&lt;p&gt;Here&amp;#8217;s a link to &lt;a href="http://foo.bar"&gt;a website&lt;/a&gt;, to a &lt;a href="local-doc.html"&gt;local
-doc&lt;/a&gt;, and to a &lt;a href="#an-h2-header"&gt;section heading in the current
-doc&lt;/a&gt;. Here&amp;#8217;s a footnote &lt;sup id="fnref:1"&gt;&lt;a class="footnote-ref" href="#fn:1"&gt;1&lt;/a&gt;&lt;/sup&gt;.&lt;/p&gt;
-&lt;p&gt;Tables can look like&amp;nbsp;this:&lt;/p&gt;
-&lt;p&gt;Name           Size  Material&amp;nbsp;Color&lt;/p&gt;
-&lt;hr&gt;
-&lt;p&gt;All Business      9  leather       brown
-Roundabout       10  hemp canvas   natural
-Cinderella       11  glass&amp;nbsp;transparent&lt;/p&gt;
-&lt;p&gt;Table: Shoes sizes, materials, and&amp;nbsp;colors.&lt;/p&gt;
-&lt;p&gt;(The above is the caption for the table.) Pandoc also supports
-multi-line&amp;nbsp;tables:&lt;/p&gt;
-&lt;hr&gt;
-&lt;p&gt;Keyword&amp;nbsp;Text&lt;/p&gt;
-&lt;hr&gt;
-&lt;p&gt;red       Sunsets, apples, and
-          other red or reddish&amp;nbsp;things.&lt;/p&gt;
-&lt;p&gt;green     Leaves, grass, frogs
-          and other things it&amp;#8217;s
-          not easy&amp;nbsp;being.&lt;/p&gt;
-&lt;hr&gt;
-&lt;p&gt;A horizontal rule&amp;nbsp;follows.&lt;/p&gt;
-&lt;hr&gt;
-&lt;p&gt;Here&amp;#8217;s a definition&amp;nbsp;list:&lt;/p&gt;
-&lt;dl&gt;
-&lt;dt&gt;apples&lt;/dt&gt;
-&lt;dd&gt;Good for making&amp;nbsp;applesauce.&lt;/dd&gt;
-&lt;dt&gt;oranges&lt;/dt&gt;
-&lt;dd&gt;Citrus!&lt;/dd&gt;
-&lt;dt&gt;tomatoes&lt;/dt&gt;
-&lt;dd&gt;There&amp;#8217;s no &amp;#8220;e&amp;#8221; in&amp;nbsp;tomatoe.&lt;/dd&gt;
-&lt;/dl&gt;
-&lt;p&gt;Again, text is indented 4 spaces. (Put a blank line between each
-term and  its definition to spread things out&amp;nbsp;more.)&lt;/p&gt;
-&lt;p&gt;Here&amp;#8217;s a &amp;#8220;line block&amp;#8221; (note how whitespace is&amp;nbsp;honored):&lt;/p&gt;
-&lt;p&gt;| Line one
-|   Line too
-| Line&amp;nbsp;tree&lt;/p&gt;
-&lt;p&gt;and images can be specified like&amp;nbsp;so:&lt;/p&gt;
-&lt;p&gt;&lt;img alt="example image" src="example-image.jpg" title="An exemplary image"&gt;&lt;/p&gt;
-&lt;p&gt;Inline math equation: $\omega = d\phi / dt$. Display
-math should get its own line like&amp;nbsp;so:&lt;/p&gt;
-&lt;p&gt;$$I = \int \rho R^{2}&amp;nbsp;dV$$&lt;/p&gt;
-&lt;p&gt;And note that you can backslash-escape any punctuation characters
-which you wish to be displayed literally, ex.: `foo`, *bar*,&amp;nbsp;etc.&lt;/p&gt;
-&lt;div class="footnote"&gt;
-&lt;hr&gt;
-&lt;ol&gt;
-&lt;li id="fn:1"&gt;
-&lt;p&gt;Some footnote text.&amp;#160;&lt;a class="footnote-backref" href="#fnref:1" title="Jump back to footnote 1 in the text"&gt;&amp;#8617;&lt;/a&gt;&lt;/p&gt;
-&lt;/li&gt;
-&lt;/ol&gt;
-&lt;/div&gt;</content><category term="Review"></category></entry></feed>
+&lt;h2&gt;6.&amp;nbsp;Заключение&lt;/h2&gt;
+&lt;p&gt;Вот и все. Теперь каждый раз при выполнении push или мержа в ветку main, будут запускаться наши jobs. Посмотреть выполнение можно во вкладке Actions&amp;nbsp;репозитория.&lt;/p&gt;
+&lt;p&gt;Важно, что по аналогии можно запилить билд и деплой практически любого приложения в любое облако(или даже просто на физический&amp;nbsp;сервер).&lt;/p&gt;
+&lt;p&gt;Разумеется, для больших проектов было бы неплохо использовать kubernetes и прочую оркестрацию, но для небольших проектов приведенный способ работает на ура и значительно упрощает разработку по сравнению с классическим “git pull на&amp;nbsp;сервере”&lt;/p&gt;</content><category term="Review"></category></entry></feed>
