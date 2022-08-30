@@ -98,24 +98,31 @@
 </code></pre></div>
 
 <p>Разберем каждую&nbsp;строку.</p>
+<p>За основу нашего образа берем контейнер с Python нужной нам&nbsp;версии</p>
 <div class="highlight"><pre><span></span><code><span class="l l-Scalar l-Scalar-Plain">FROM python:3.9</span><span class="w"></span>
 </code></pre></div>
 
+<p>Устанавливаем /code рабочей&nbsp;директорией</p>
 <div class="highlight"><pre><span></span><code><span class="l l-Scalar l-Scalar-Plain">WORKDIR /code</span><span class="w"></span>
 </code></pre></div>
 
+<p>Копируем в нашу рабочую директорию файл с&nbsp;зависимостями</p>
 <div class="highlight"><pre><span></span><code><span class="l l-Scalar l-Scalar-Plain">COPY ./requirements.txt /code/requirements.txt</span><span class="w"></span>
 </code></pre></div>
 
+<p>Устанавливаем все зависимости нашего приложения. Флаг &#8212;no-cache-dir нужен, чтобы Docker не кэшировал зависимости. Если его не указать, размер образа будет&nbsp;больше.</p>
 <div class="highlight"><pre><span></span><code><span class="l l-Scalar l-Scalar-Plain">RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt</span><span class="w"></span>
 </code></pre></div>
 
+<p>Копируем весь код из текущей директории на локальной машине(наш проект) в папку /code&nbsp;контейнера</p>
 <div class="highlight"><pre><span></span><code><span class="l l-Scalar l-Scalar-Plain">COPY . /code</span><span class="w"></span>
 </code></pre></div>
 
+<p>Запускаем тесты, если есть. Я всегда включаю прогон тестов на стадию сборки контейнера, чтобы отловить баги на самом раннем&nbsp;этапе</p>
 <div class="highlight"><pre><span></span><code><span class="l l-Scalar l-Scalar-Plain">RUN [&quot;python&quot;, &quot;-m&quot;, &quot;pytest&quot;]</span><span class="w"></span>
 </code></pre></div>
 
+<p>Собственно команда запуска&nbsp;сервера</p>
 <div class="highlight"><pre><span></span><code><span class="l l-Scalar l-Scalar-Plain">CMD [&quot;uvicorn&quot;, &quot;app.main:app&quot;, &quot;--host&quot;, &quot;0.0.0.0&quot;, &quot;--port&quot;, &quot;8080&quot;, &quot;--reload&quot;]</span><span class="w"></span>
 </code></pre></div>
 
@@ -127,6 +134,7 @@
 <div class="highlight"><pre><span></span><code><span class="l l-Scalar l-Scalar-Plain">docker run -p 8080:8080 --name helloapi-container -v &quot;${path}:/code&quot; helloapi</span><span class="w"></span>
 </code></pre></div>
 
+<p>Параметр -p указывает на то что мы настроили маппинг порта контейнера и хоста, параметром -v мы сопоставили папку /code контейнера и текущую дерикторию с кодом проекта, чтобы uvicorn мог автоматически перезагружаться при изменении исходного кода. В production это лучше&nbsp;отключать</p>
 <p>Подробнее о Dockerfile и работе с контейнерами читаем в официальном туториале: <a href="https://docs.docker.com/get-started/">https://docs.docker.com/get-started/</a></p>
 <h2>3. Создаем конфигурацию workflows для Github&nbsp;Actions</h2>
 <p>Github Actions подхватывает файл с названием ветки,  например для main:&nbsp;.github/workflows/main.yml</p>
@@ -181,6 +189,7 @@
 
 <p>Рассмотрим&nbsp;подробно.</p>
 <h3>Trigger</h3>
+<p>Тут все просто. Сообщаем Github Actions по какому триггеру будет выполняться&nbsp;workflow.</p>
 <div class="highlight"><pre><span></span><code><span class="nt">on</span><span class="p">:</span><span class="w"></span>
 <span class="w">  </span><span class="nt">push</span><span class="p">:</span><span class="w"></span>
 <span class="w">    </span><span class="nt">branches</span><span class="p">:</span><span class="w"></span>
@@ -188,16 +197,19 @@
 </code></pre></div>
 
 <h3>Build&nbsp;Job</h3>
+<p>Сообщаем раннеру Github на чем будем билдить наш образ. У Github выбор не большой, поэтому берем последнюю&nbsp;Ubuntu</p>
 <div class="highlight"><pre><span></span><code><span class="nt">jobs</span><span class="p">:</span><span class="w"></span>
 <span class="w">  </span><span class="nt">build</span><span class="p">:</span><span class="w"></span>
 <span class="w">    </span><span class="nt">runs-on</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ubuntu-latest</span><span class="w"></span>
 </code></pre></div>
 
+<p>На этом шаге вызываем стандартный Action, который скачивает наш репозиторий на&nbsp;раннер</p>
 <div class="highlight"><pre><span></span><code><span class="p p-Indicator">-</span><span class="w"></span>
 <span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Checkout</span><span class="w"></span>
 <span class="w">        </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">actions/checkout@v2</span><span class="w"></span>
 </code></pre></div>
 
+<p>Логинимся в яндексовой консоли припомощи яндексового Action. Про параметр YC_SA_JSON_CREDENTIALS напишу&nbsp;позже</p>
 <div class="highlight"><pre><span></span><code><span class="p p-Indicator">-</span><span class="w"></span>
 <span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Yandex Cloud login</span><span class="w"></span>
 <span class="w">        </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">yc-actions/yc-cr-login@v1</span><span class="w"></span>
@@ -205,6 +217,7 @@
 <span class="w">          </span><span class="nt">yc-sa-json-credentials</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${{ secrets.YC_SA_JSON_CREDENTIALS }}</span><span class="w"></span>
 </code></pre></div>
 
+<p>Устанавливаем env переменные(о них позже) и выполняем две&nbsp;команды</p>
 <div class="highlight"><pre><span></span><code><span class="w"> </span><span class="p p-Indicator">-</span><span class="w"></span>
 <span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Build, tag, and push image to Yandex Cloud Container Registry</span><span class="w"></span>
 <span class="w">        </span><span class="nt">env</span><span class="p">:</span><span class="w"></span>
@@ -217,9 +230,11 @@
 <span class="w">          </span><span class="no">docker push cr.yandex/$CR_REGISTRY/$CR_REPO:$IMAGE_TAG</span><span class="w"></span>
 </code></pre></div>
 
+<p>Билдим наш образ из исходников и проставляем в качестве тега путь до яндекс registry. В качестве IMAGE_TAG используется переменная github.sha, вычисляющаяся из хэша нашего&nbsp;коммита</p>
 <div class="highlight"><pre><span></span><code>docker build -t cr.yandex/<span class="nv">$CR_REGISTRY</span>/<span class="nv">$CR_REPO</span>:<span class="nv">$IMAGE_TAG</span> .
 </code></pre></div>
 
+<p>Осталось лишь запушить наш образ в registry&nbsp;Яндекса</p>
 <div class="highlight"><pre><span></span><code>docker push cr.yandex/<span class="nv">$CR_REGISTRY</span>/<span class="nv">$CR_REPO</span>:<span class="nv">$IMAGE_TAG</span>
 </code></pre></div>
 
@@ -229,18 +244,23 @@
 <span class="w">    </span><span class="nt">runs-on</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ubuntu-latest</span><span class="w"></span>
 </code></pre></div>
 
+<p>needs указывает, что наш deploy должен проходить после завершения&nbsp;build</p>
+<p>Используем Action для выполнения команд через ssh&nbsp;https://github.com/appleboy/ssh-action</p>
 <div class="highlight"><pre><span></span><code><span class="w">    </span><span class="nt">steps</span><span class="p">:</span><span class="w"></span>
 <span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Deploy to server via ssh</span><span class="w"></span>
 <span class="w">        </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">appleboy/ssh-action@master</span><span class="w"></span>
 </code></pre></div>
 
 <p>Далее мы выполняем команды на нашем&nbsp;сервере.</p>
+<p>Скачиваем сбилденный ранее&nbsp;образ</p>
 <div class="highlight"><pre><span></span><code>sudo docker pull cr.yandex/<span class="si">${</span><span class="p">{secrets.YANDEX_REGISTRY_ID</span><span class="si">}</span><span class="o">}</span>/<span class="si">${</span><span class="p">{secrets.YANDEX_REPO_NAME</span><span class="si">}</span><span class="o">}</span>:<span class="si">${</span><span class="p">{github.sha</span><span class="si">}</span><span class="o">}</span>
 </code></pre></div>
 
+<p>Удаляем предыдущий контейнер если есть. Он нам больше не нужен. -f форсирует удаление если контейнер&nbsp;запущен</p>
 <div class="highlight"><pre><span></span><code>sudo docker rm -f <span class="si">${</span><span class="p">{secrets.PROJECT_NAME</span><span class="si">}</span><span class="o">}</span>
 </code></pre></div>
 
+<p>Запускаем контейнер из нашего&nbsp;образа</p>
 <div class="highlight"><pre><span></span><code>sudo docker run -d -p <span class="m">8080</span>:8080 --name <span class="si">${</span><span class="p">{secrets.PROJECT_NAME</span><span class="si">}</span><span class="o">}</span>  cr.yandex/<span class="si">${</span><span class="p">{secrets.YANDEX_REGISTRY_ID</span><span class="si">}</span><span class="o">}</span>/<span class="si">${</span><span class="p">{secrets.YANDEX_REPO_NAME</span><span class="si">}</span><span class="o">}</span>:<span class="si">${</span><span class="p">{github.sha</span><span class="si">}</span><span class="o">}</span>  
 </code></pre></div>
 
