@@ -1,10 +1,4 @@
-# This file is only used if you use `make publish` or
-# explicitly specify it as your config file.
 
-import os
-import sys
-sys.path.append(os.curdir)
-from pelicanconf import *
 
 # If your site is available via HTTPS, make sure SITEURL begins with https://
 SITEURL = 'https://rocanten.ru'
@@ -15,7 +9,25 @@ CATEGORY_FEED_ATOM = 'feeds/{slug}.atom.xml'
 
 DELETE_OUTPUT_DIRECTORY = True
 
-# Following items are often useful when publishing
+AUTHOR = 'Олег Прокофьев'
+SITENAME = 'Блог Олега Прокофьева'
+SITESUBTITLE = 'Пишу на темы:'
 
-#DISQUS_SITENAME = ""
-#GOOGLE_ANALYTICS = ""
+PATH = 'content'
+
+TIMEZONE = 'Europe/Moscow'
+
+DEFAULT_LANG = 'ru'
+
+THEME = 'themes/simple'
+
+DEFAULT_PAGINATION = 20
+
+STATIC_PATHS = ('images', 'misc')
+
+EXTRA_PATH_METADATA = {'misc/CNAME': {'path': 'CNAME'},}
+
+SHOW_AUTHOR = False
+
+GOOGLE_TAG_ID = 'G-3GRRGS2JQX'
+YANDEX_METRIKA_ID = '95028658'

@@ -1,0 +1,15 @@
+{% if DEFAULT_PAGINATION %}
+{% set first_page = articles_paginator.page(1) %}
+{% set last_page = articles_paginator.page(articles_paginator.num_pages) %}
+<p class="paginator">
+    {% if articles_page.has_previous() %}
+        <a class="pure-button" href="{{ SITEURL }}/{{ first_page.url }}">Первая</a>
+        <a class="pure-button" href="{{ SITEURL }}/{{ articles_previous_page.url }}">Предыдущая страница</a>
+    {% endif %}
+    Page {{ articles_page.number }} / {{ articles_paginator.num_pages }}
+    {% if articles_page.has_next() %}
+        <a class="pure-button" href="{{ SITEURL }}/{{ articles_next_page.url }}">Следующая страница</a>
+        <a class="pure-button" href="{{ SITEURL }}/{{ last_page.url }}">Последняя</a>
+    {% endif %}
+</p>
+{% endif %}

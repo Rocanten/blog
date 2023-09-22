@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+          <title>Блог Олега Прокофьева - Настройка логирования в docker при помощи Loki на s3 и Grafana</title>
+        <meta charset="utf-8" />
+        <meta name="generator" content="Pelican" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link href="https://rocanten.ru/feeds/all.atom.xml" type="application/atom+xml" rel="alternate" title="Блог Олега Прокофьева Full Atom Feed" />
+        <link href="https://rocanten.ru/feeds/devops.atom.xml" type="application/atom+xml" rel="alternate" title="Блог Олега Прокофьева Categories Atom Feed" />
+
+
+
+
+
+        <link href='https://fonts.googleapis.com/css?family=Roboto' rel='stylesheet'>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/purecss@3.0.0/build/pure-min.css" integrity="sha384-X38yfunGUhNzHpBaEBsWLO+A0HDYOQi8ufWDkZ0k9e0eXz/tH3II7uKZ9msv++Ls" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/purecss@3.0.0/build/grids-responsive-min.css">
+        <link rel="stylesheet" href="/theme/css/styles.css">
+        <link rel="stylesheet" href="/theme/css/typebase.css">
+        <!-- Google tag (gtag.js) -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-3GRRGS2JQX"></script>
+        <script>
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+
+          gtag('config', 'G-3GRRGS2JQX');
+        </script>
+        <!-- Yandex.Metrika counter -->
+        <script type="text/javascript" >
+           (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+           m[i].l=1*new Date();
+           for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
+           k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+           (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+
+           ym(95028658, "init", {
+                clickmap:true,
+                trackLinks:true,
+                accurateTrackBounce:true
+           });
+        </script>
+        <noscript><div><img src="https://mc.yandex.ru/watch/95028658" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
+        <!-- /Yandex.Metrika counter -->
+</head>
+
+
+<body>
+    <div class="sidebar pure-u-1 pure-u-md-1-4">
+        <div class="header">
+            <p class="brand-title"><a class="title" href="https://rocanten.ru">Блог Олега Прокофьева</a></p>
+            <h2 class="brand-tagline"> Пишу на темы:</h2>
+
+            <nav class="nav">
+                <ul class="nav-list">
+                    <li class="nav-item">
+                        <a class="pure-button" href="https://rocanten.ru/category/devops.html">devops</a>
+                    </li>
+                </ul>
+            </nav>
+            <div class="contacts-info">
+                <p class="contact"><a href="https://t.me/rocanten" target="_blank">@telegram</a></p>
+                <p class="contact"><a href="https://github.com/Rocanten" target="_blank">@github</a></p>
+                <p class="contact"><a href="https://www.linkedin.com/in/rocanten" target="_blank">@linkedin</a></p>
+            </div>
+        </div>
+    </div>
+    <main class = "content pure-u-1 pure-u-md-3-4">
+  <header>
+ 
+  </header>
+  <footer class="post-meta">
+    <time class="published" datetime="2023-09-22T23:16:00+03:00">
+      Fri 22 September 2023
+    </time>
+    <div class="category">
+        Category: <a class="post-category button-tag" href="https://rocanten.ru/category/devops.html">devops</a>
+    </div>
+  </footer><!-- /.post-info -->
+  <article>
+    <h1>Настройка логирования в docker при помощи Loki на s3 и Grafana</h1>
+<h2>Обзор</h2>
+<p>Для начала, давайте посмотрим верхнеуровнево на то, что мы хотим сделать</p>
+<p><img alt="docker_logging_diagram.png" src="https://rocanten.ru/images/docker_logging_diagram.png"></p>
+<p>Кратко о том, что происходит на схеме:</p>
+<ol>
+<li>Docker logging driver считывает логи со всех контейнеров, которые логируют что-либо в нашем докере</li>
+<li>Docker logging driver считывает логи из файлов логов хоста</li>
+<li>Docker logging driver отправляет считанные логи в Loki через его API</li>
+<li>За кадром loki индексирует логи и организует их хранение</li>
+<li>Пользователь открывает Grafana(она поднята в том же докере, где и все остальное)</li>
+<li>Grafana делает запросы к Loki на получение логов и визуализирует их</li>
+</ol>
+<p>Перейдем к настройке всего этого добра.</p>
+<h2>Установка и настройка драйвера логирования</h2>
+<p>Чтобы в Loki появлялись логи, надо чтобы кто-то их туда отправлял. У Docker есть для этого специальный механизм - драйверы логирования. Они есть для многих сервисов, например для Splunk, Amazon Cloud Watch, ELK и многих других. Нас интересует плагин <a href="https://grafana.com/docs/loki/latest/send-data/docker-driver/">Loki docker plugin</a>. </p>
+<p>Устанавливаем драйвер логирования:</p>
+<div class="highlight"><pre><span></span><code><span class="l l-Scalar l-Scalar-Plain">sudo docker plugin install grafana/loki-docker-driver:latest --alias loki --grant-all-permissions</span>
+</code></pre></div>
+
+<p>Теперь у нас есть возможность отправлять логи в Loki. Это можно сделать двумя способами:</p>
+<ol>
+<li>Указывать специальные параметры при запуске каждого контейнера</li>
+<li>Принудительно отправлять все логи со всех запускаемых на данном хосте контейнеров в Loki</li>
+</ol>
+<p>Я думаю, что в большинстве случаев второй вариант предпочтителен, так как требует настройки один раз и помогает собрать логи со всех, даже тех, кто этого не хочет.
+<br />
+Для принудительной отправки логов в Loki, необходимо отредактировать файл /etc/docker/daemon.json. Создайте его, если его нет:</p>
+<div class="highlight"><pre><span></span><code><span class="p p-Indicator">{</span>
+<span class="w">    </span><span class="s">&quot;log-driver&quot;</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="s">&quot;loki&quot;</span><span class="p p-Indicator">,</span>
+<span class="w">    </span><span class="s">&quot;log-opts&quot;</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="p p-Indicator">{</span>
+<span class="w">        </span><span class="s">&quot;loki-url&quot;</span><span class="p p-Indicator">:</span><span class="w"> </span><span class="s">&quot;http://127.0.0.1:3100/loki/api/v1/push&quot;</span>
+<span class="w">    </span><span class="p p-Indicator">}</span>
+<span class="p p-Indicator">}</span>
+</code></pre></div>
+
+<p>Здесь все довольно просто:</p>
+<p>log-driver указывает на то, что логирование будет осуществляться при помощи Loki</p>
+<p>loki-url указывает адрес, по которому драйвер должен отправить логи.
+<br />
+После изменений необходимо перезапустить сервис докера:</p>
+<div class="highlight"><pre><span></span><code><span class="l l-Scalar l-Scalar-Plain">sudo systemctl restart docker</span>
+</code></pre></div>
+
+<p>С этого момента все контейнеры, которые были заново созданы, будут отправлять логи прямиком в Loki. Вот только его пока не существует.</p>
+<p>Давайте исправим это</p>
+<h2>Настройка бакета s3 в Яндекс.Облако</h2>
+<p>Но сначала нужно получить параметры для доступа к бакету s3, в котором мы будем хранить наши логи. Я привожу инструкцию для Яндекс Облака, но примерно также можно сделать в любом другом сервисе, предоставляющим объектное хранилище.
+<br /></p>
+<p>Сначала создадим сервисный аккаунт:</p>
+<ol>
+<li>Заходим в консоль Яндекс Облако: <a href="https://cloud.yandex.ru/">https://cloud.yandex.ru/</a></li>
+<li>Переходим во вкладку Сервисные аккаунты</li>
+<li>Нажимаем кнопку Создать сервисный аккаунт</li>
+<li>Задаем имя</li>
+<li>Выбираем права: storage.editor, storage.uploader, storage.viewer</li>
+<li>Создаем</li>
+<li>Переходим в созданный сервисный аккаунт</li>
+<li>Нажимаем кнопку Создать ключ</li>
+<li>Выбираем Создать статический ключ доступа</li>
+<li>Сохраняем себе идентификатор ключа и секретный ключ</li>
+</ol>
+<p><br /></p>
+<p>Теперь создаем бакет:</p>
+<ol>
+<li>В меню Все сервисы выбираем Object storage</li>
+<li>Нажимаем кнопку Создать бакет</li>
+<li>Задаем имя</li>
+<li>Создаем бакет</li>
+</ol>
+<p>Вот и все, url вашего бакета будет вида <a href="http://storage.yandexcloud.net/">http://storage.yandexcloud.net/</a> + название созданного бакета</p>
+<h2>Настройка Loki для хранения логов в s3 хранилище</h2>
+<p><br /> 
+Создайте папку loki в домашней директории:</p>
+<div class="highlight"><pre><span></span><code><span class="l l-Scalar l-Scalar-Plain">mkdir ~/loki</span>
+</code></pre></div>
+
+<p><br /> 
+Перейдите в созданную папку:</p>
+<div class="highlight"><pre><span></span><code><span class="l l-Scalar l-Scalar-Plain">cd ~/loki</span>
+</code></pre></div>
+
+<p><br /> 
+Создайте и отредактируйте в домашней папке файл local-config.yaml:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">auth_enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span><span class="w"> </span>
+
+<span class="nt">server</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">http_listen_port</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3100</span>
+
+<span class="nt">common</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">ring</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">instance_addr</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">127.0.0.1</span>
+<span class="w">    </span><span class="nt">kvstore</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">store</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">memberlist</span>
+<span class="w">  </span><span class="nt">replication_factor</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+<span class="w">  </span><span class="nt">path_prefix</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/etc/loki</span>
+
+<span class="nt">ingester</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">wal</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">dir</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;/tmp/wal&quot;</span>
+<span class="w">    </span><span class="nt">replay_memory_ceiling</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">4GB</span>
+
+<span class="nt">schema_config</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">configs</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2023-09-12</span>
+<span class="w">    </span><span class="nt">store</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">boltdb-shipper</span>
+<span class="w">    </span><span class="nt">object_store</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">s3</span>
+<span class="w">    </span><span class="nt">schema</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">v11</span>
+<span class="w">    </span><span class="nt">index</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">prefix</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">index_</span>
+<span class="w">      </span><span class="nt">period</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">24h</span>
+
+<span class="nt">storage_config</span><span class="p">:</span>
+<span class="w"> </span><span class="nt">boltdb_shipper</span><span class="p">:</span>
+<span class="w">   </span><span class="nt">active_index_directory</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/loki/index</span>
+<span class="w">   </span><span class="nt">cache_location</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/loki/index_cache</span>
+<span class="w">   </span><span class="nt">shared_store</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">s3</span>
+<span class="w"> </span><span class="nt">aws</span><span class="p">:</span>
+<span class="w">   </span><span class="nt">s3</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">s3://{Access key}:{Access key secret}@{s3 bucket url}</span>
+<span class="w">   </span><span class="nt">s3forcepathstyle</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+
+<span class="nt">compactor</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">working_directory</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/loki/compactor</span>
+<span class="w">  </span><span class="nt">shared_store</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">s3</span>
+<span class="w">  </span><span class="nt">compaction_interval</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">5m</span>
+</code></pre></div>
+
+<p><br />
+Разберем все параметры</p>
+<p><br />
+Мы не планируем использовать multi tenancy, так что смело отключаем:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">auth_enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+</code></pre></div>
+
+<p><br />
+Loki будет ожидать логи и запросы от графаны на 3100 порту:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">http_listen_port</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3100</span>
+</code></pre></div>
+
+<p><br />
+IP адрес инстанса Loki:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">instance_addr</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">127.0.0.1</span>
+</code></pre></div>
+
+<p><br />
+Следующая настройка позволяет повысить доставляемость логов в постоянное хранилище за счет создания двух и более реплик Loki. Нам это сейчас не нужно, но в некоторых проектах может быть полезно.</p>
+<div class="highlight"><pre><span></span><code><span class="nt">store</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">memberlist</span>
+</code></pre></div>
+
+<p><br />
+Следующий фрагмент определяет настройки ingester. Это компонент внутри Loki, который отвечает за запись логов в постоянное хранилище(например, s3) и считывает их оттуда.</p>
+<p>dir указывает директорию, в которой будут храниться логи, пока они не отправлены в постоянное хранилище</p>
+<p>replay_memory_ceiling указывает размер логов, хранящийся локально. Если объем логов достигнет данного значения, ingester их немедленно отправит в постоянное хранилище.</p>
+<div class="highlight"><pre><span></span><code><span class="nt">ingester</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">wal</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">dir</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;/tmp/wal&quot;</span>
+<span class="w">    </span><span class="nt">replay_memory_ceiling</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">4GB</span>
+</code></pre></div>
+
+<p><br />
+Следующий блок определяет настройки хранения индекса. </p>
+<p>from - начиная с какой даты будут созданы индексы</p>
+<p>store - тип хранилища индексов. У нас будет boltdb-shipper, который позволяет использовать локальные индексы, которые периодически синхронизируются с хранилищем</p>
+<p>object_store - тип хранилища логов. Мы настраиваем s3</p>
+<div class="highlight"><pre><span></span><code><span class="nt">schema_config</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">configs</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2023-09-12</span>
+<span class="w">    </span><span class="nt">store</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">boltdb-shipper</span>
+<span class="w">    </span><span class="nt">object_store</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">s3</span>
+<span class="w">    </span><span class="nt">schema</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">v11</span>
+</code></pre></div>
+
+<p><br />
+Далее идут настройки boltdb_shipper.</p>
+<p>active_index_directory - локальная директория для хранения индексов</p>
+<p>cache_location - локальная директория для хранения кэша индексов</p>
+<p>shared_store - постоянное хранилище индексов</p>
+<div class="highlight"><pre><span></span><code><span class="w"> </span><span class="nt">boltdb_shipper</span><span class="p">:</span>
+<span class="w">   </span><span class="nt">active_index_directory</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/loki/index</span>
+<span class="w">   </span><span class="nt">cache_location</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/loki/index_cache</span>
+<span class="w">   </span><span class="nt">shared_store</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">s3</span>
+</code></pre></div>
+
+<p><br />
+Наконец-то, сами настройки s3. Тут все просто.</p>
+<p>s3 - строка для доступа к бакету, где будут храниться логи</p>
+<p>s3forcepathstyle - доступ к бакету по пути</p>
+<div class="highlight"><pre><span></span><code><span class="w">   </span><span class="nt">s3</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">s3://{Access key}:{Access key secret}@{s3 bucket url}</span>
+<span class="w">   </span><span class="nt">s3forcepathstyle</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</code></pre></div>
+
+<p><br />
+Compactor оптимизирует шарды индексов для лучшей производительности</p>
+<p>working_directory - сюда compactor будет скачивать файлы для последующей оптимизации</p>
+<p>shared_store - постоянное хранилище индексов</p>
+<p>compaction_interval - как часто проводить оптимизацию</p>
+<div class="highlight"><pre><span></span><code><span class="nt">compactor</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">working_directory</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/loki/compactor</span>
+<span class="w">  </span><span class="nt">shared_store</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">s3</span>
+<span class="w">  </span><span class="nt">compaction_interval</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">5m</span>
+</code></pre></div>
+
+<h2>Пишем docker-compose для Loki и Grafana</h2>
+<p>Мы на финишной прямой! Осталось создать docker-compose.yml файл и запустить нашу связку Loki + Grafana.
+<br />
+Итак, создадим на docker-compose.yml в той же папке ~/loki:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">version</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;3&quot;</span>
+
+<span class="nt">networks</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">loki</span><span class="p">:</span>
+
+<span class="nt">services</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">loki</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">grafana/loki:2.9.0</span>
+<span class="w">    </span><span class="nt">hostname</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">loki</span>
+<span class="w">    </span><span class="nt">ports</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;3100:3100&quot;</span>
+<span class="w">    </span><span class="nt">volumes</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">~/loki:/etc/loki</span>
+<span class="w">    </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">-config.file=/etc/loki/local-config.yaml</span>
+<span class="w">    </span><span class="nt">networks</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">loki</span>
+
+<span class="w">  </span><span class="nt">grafana</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">environment</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">GF_PATHS_PROVISIONING=/etc/grafana/provisioning</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">GF_AUTH_ANONYMOUS_ENABLED=true</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">GF_AUTH_ANONYMOUS_ORG_ROLE=Admin</span>
+<span class="w">    </span><span class="nt">entrypoint</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">sh</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">-euc</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<span class="w">        </span><span class="no">mkdir -p /etc/grafana/provisioning/datasources</span>
+<span class="w">        </span><span class="no">cat &lt;&lt;EOF &gt; /etc/grafana/provisioning/datasources/ds.yaml</span>
+<span class="w">        </span><span class="no">apiVersion: 1</span>
+<span class="w">        </span><span class="no">datasources:</span>
+<span class="w">        </span><span class="no">- name: Loki</span>
+<span class="w">          </span><span class="no">type: loki</span>
+<span class="w">          </span><span class="no">access: proxy</span>
+<span class="w">          </span><span class="no">orgId: 1</span>
+<span class="w">          </span><span class="no">url: http://loki:3100</span>
+<span class="w">          </span><span class="no">basicAuth: false</span>
+<span class="w">          </span><span class="no">isDefault: true</span>
+<span class="w">          </span><span class="no">version: 1</span>
+<span class="w">          </span><span class="no">editable: false</span>
+<span class="w">        </span><span class="no">EOF</span>
+<span class="w">        </span><span class="no">/run.sh</span>
+<span class="w">    </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">grafana/grafana:latest</span>
+<span class="w">    </span><span class="nt">ports</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;3200:3000&quot;</span>
+<span class="w">    </span><span class="nt">networks</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">loki</span>
+</code></pre></div>
+
+<p><br />
+Разумеется, рассмотрим все повнимательнее.
+<br />
+Для начала задаем сеть с названием loki, чтобы у нас не было проблем с доступностью сервисов друг для друга:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">networks</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">loki</span><span class="p">:</span>
+</code></pre></div>
+
+<p><br />
+Далее идет блок с Loki.</p>
+<p>image - берем стандартный docker образ grafana/loki</p>
+<p>hostname - задаем на всякий случай hostname</p>
+<p>ports - паблишим и маппим стандартный порт Loki</p>
+<p>volumes - маппим нашу папку с настройками в директорию /etc/loki контейнера с Loki</p>
+<p>command - указываем путь к файлу настройки</p>
+<p>networks - включаем сервис loki в сеть loki</p>
+<div class="highlight"><pre><span></span><code><span class="nt">services</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">loki</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">grafana/loki:2.9.0</span>
+<span class="w">    </span><span class="nt">hostname</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">loki</span>
+<span class="w">    </span><span class="nt">ports</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;3100:3100&quot;</span>
+<span class="w">    </span><span class="nt">volumes</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">~/loki:/etc/loki</span>
+<span class="w">    </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">-config.file=/etc/loki/local-config.yaml</span>
+<span class="w">    </span><span class="nt">networks</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">loki</span>
+</code></pre></div>
+
+<p><br />
+Теперь к настройкам Grafana.</p>
+<p>Задаем переменные окружения:</p>
+<div class="highlight"><pre><span></span><code><span class="w">  </span><span class="nt">grafana</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">environment</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">GF_PATHS_PROVISIONING=/etc/grafana/provisioning</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">GF_AUTH_ANONYMOUS_ENABLED=true</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">GF_AUTH_ANONYMOUS_ORG_ROLE=Admin</span>
+</code></pre></div>
+
+<p><br />
+Теперь при помощи entrypoint указываем сервису, что нужно создать datasource, который будет обращаться к нашему loki. Это можно будет сделать руками после запуска контейнера в интерфейсе Grafana, но лучше автоматизировать</p>
+<div class="highlight"><pre><span></span><code><span class="w">  </span><span class="nt">entrypoint</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">sh</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">-euc</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<span class="w">        </span><span class="no">mkdir -p /etc/grafana/provisioning/datasources</span>
+<span class="w">        </span><span class="no">cat &lt;&lt;EOF &gt; /etc/grafana/provisioning/datasources/ds.yaml</span>
+<span class="w">        </span><span class="no">apiVersion: 1</span>
+<span class="w">        </span><span class="no">datasources:</span>
+<span class="w">        </span><span class="no">- name: Loki</span>
+<span class="w">          </span><span class="no">type: loki</span>
+<span class="w">          </span><span class="no">access: proxy</span>
+<span class="w">          </span><span class="no">orgId: 1</span>
+<span class="w">          </span><span class="no">url: http://loki:3100</span>
+<span class="w">          </span><span class="no">basicAuth: false</span>
+<span class="w">          </span><span class="no">isDefault: true</span>
+<span class="w">          </span><span class="no">version: 1</span>
+<span class="w">          </span><span class="no">editable: false</span>
+<span class="w">        </span><span class="no">EOF</span>
+<span class="w">        </span><span class="no">/run.sh</span>
+<span class="w">  </span><span class="w w-Error">  </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">grafana/grafana:latest</span>
+<span class="w">    </span><span class="nt">ports</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;3200:3000&quot;</span>
+<span class="w">    </span><span class="nt">networks</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">loki</span>
+</code></pre></div>
+
+<p><br />
+Вот и все!
+<br />
+Запускаем docker compose:</p>
+<div class="highlight"><pre><span></span><code><span class="l l-Scalar l-Scalar-Plain">sudo docker compose up -d --build</span>
+</code></pre></div>
+
+<p>Ждем, когда все запустится и переходим в браузере по адресу {ip сервера}:3200.</p>
+<p>Должна открыться Grafana. Переходим в раздел Explore, выбираем нужный контейнер и делаем запросы логов.</p>
+<h2>Что в итоге</h2>
+<p>В итоге мы получили удобную систему логов для всех контейнеров, которые когда-либо будут созданы на данном хосте. Более того, мы можем перенаправлять в Loki логи с других хостов, просто указав внешний ip в настройках драйвера логирования докера.</p>
+<p>Особенно приятно, что все логи теперь храняться в облаке на s3, а значит никуда не пропадут, могут храниться там вечно за копейки и больше у вас никогда не забьется диск из-за большого лог файла!</p>
+<p>Ну и конечно же больше не надо лазить по бесконечным лог файлам грепами или выполнять docker logs.
+<br /><br /><br /><br /><br /></p>
+  </article>
+    </main>
+</body>
+</html>

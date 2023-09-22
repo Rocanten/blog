@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="{% block html_lang %}{{ DEFAULT_LANG }}{% endblock html_lang %}">
+<head>
+        {% block head %}
+        <title>{% block title %}{{ SITENAME }}{% endblock title %}</title>
+        <meta charset="utf-8" />
+        <meta name="generator" content="Pelican" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        {% if FEED_ALL_ATOM %}
+        <link href="{{ FEED_DOMAIN }}/{% if FEED_ALL_ATOM_URL %}{{ FEED_ALL_ATOM_URL }}{% else %}{{ FEED_ALL_ATOM }}{% endif %}" type="application/atom+xml" rel="alternate" title="{{ SITENAME }} Full Atom Feed" />
+        {% endif %}
+        {% if FEED_ALL_RSS %}
+        <link href="{{ FEED_DOMAIN }}/{% if FEED_ALL_RSS_URL %}{{ FEED_ALL_RSS_URL }}{% else %}{{ FEED_ALL_RSS }}{% endif %}" type="application/rss+xml" rel="alternate" title="{{ SITENAME }} Full RSS Feed" />
+        {% endif %}
+        {% if FEED_ATOM %}
+        <link href="{{ FEED_DOMAIN }}/{%if FEED_ATOM_URL %}{{ FEED_ATOM_URL }}{% else %}{{ FEED_ATOM }}{% endif %}" type="application/atom+xml" rel="alternate" title="{{ SITENAME }} Atom Feed" />
+        {% endif %}
+        {% if FEED_RSS %}
+        <link href="{{ FEED_DOMAIN }}/{% if FEED_RSS_URL %}{{ FEED_RSS_URL }}{% else %}{{ FEED_RSS }}{% endif %}" type="application/rss+xml" rel="alternate" title="{{ SITENAME }} RSS Feed" />
+        {% endif %}
+        {% if CATEGORY_FEED_ATOM and category %}
+        <link href="{{ FEED_DOMAIN }}/{% if CATEGORY_FEED_ATOM_URL %}{{ CATEGORY_FEED_ATOM_URL.format(slug=category.slug) }}{% else %}{{ CATEGORY_FEED_ATOM.format(slug=category.slug) }}{% endif %}" type="application/atom+xml" rel="alternate" title="{{ SITENAME }} Categories Atom Feed" />
+        {% endif %}
+        {% if CATEGORY_FEED_RSS and category %}
+        <link href="{{ FEED_DOMAIN }}/{% if CATEGORY_FEED_RSS_URL %}{{ CATEGORY_FEED_RSS_URL.format(slug=category.slug) }}{% else %}{{ CATEGORY_FEED_RSS.format(slug=category.slug) }}{% endif %}" type="application/rss+xml" rel="alternate" title="{{ SITENAME }} Categories RSS Feed" />
+        {% endif %}
+        {% if TAG_FEED_ATOM and tag %}
+        <link href="{{ FEED_DOMAIN }}/{% if TAG_FEED_ATOM_URL %}{{ TAG_FEED_ATOM_URL.format(slug=tag.slug) }}{% else %}{{ TAG_FEED_ATOM.format(slug=tag.slug) }}{% endif %}" type="application/atom+xml" rel="alternate" title="{{ SITENAME }} Tags Atom Feed" />
+        {% endif %}
+        {% if TAG_FEED_RSS and tag %}
+        <link href="{{ FEED_DOMAIN }}/{% if TAG_FEED_RSS_URL %}{{ TAG_FEED_RSS_URL.format(slug=tag.slug) }}{% else %}{{ TAG_FEED_RSS.format(slug=tag.slug) }}{% endif %}" type="application/rss+xml" rel="alternate" title="{{ SITENAME }} Tags RSS Feed" />
+        {% endif %}
+        {% endblock head %}
+        <link href='https://fonts.googleapis.com/css?family=Roboto' rel='stylesheet'>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/purecss@3.0.0/build/pure-min.css" integrity="sha384-X38yfunGUhNzHpBaEBsWLO+A0HDYOQi8ufWDkZ0k9e0eXz/tH3II7uKZ9msv++Ls" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/purecss@3.0.0/build/grids-responsive-min.css">
+        <link rel="stylesheet" href="/theme/css/styles.css">
+        <link rel="stylesheet" href="/theme/css/typebase.css">
+        {% if GOOGLE_TAG_ID %}
+        <!-- Google tag (gtag.js) -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id={{ GOOGLE_TAG_ID }}"></script>
+        <script>
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+
+          gtag('config', '{{ GOOGLE_TAG_ID }}');
+        </script>
+        {% endif %}
+        {% if YANDEX_METRIKA_ID %}
+        <!-- Yandex.Metrika counter -->
+        <script type="text/javascript" >
+           (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+           m[i].l=1*new Date();
+           for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
+           k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+           (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+
+           ym(95028658, "init", {
+                clickmap:true,
+                trackLinks:true,
+                accurateTrackBounce:true
+           });
+        </script>
+        <noscript><div><img src="https://mc.yandex.ru/watch/{{ YANDEX_METRIKA_ID }}" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
+        <!-- /Yandex.Metrika counter -->
+        {% endif %}
+</head>
+
+
+<body>
+    <div class="sidebar pure-u-1 pure-u-md-1-4">
+        <div class="header">
+            <p class="brand-title"><a class="title" href="{{ SITEURL }}">{{ SITENAME }}</a></p>
+            <h2 class="brand-tagline">{% if SITESUBTITLE %} {{ SITESUBTITLE }}{% endif %}</h2>
+
+            <nav class="nav">
+                {% for cat, null in categories %}
+                <ul class="nav-list">
+                    <li class="nav-item">
+                        <a class="pure-button" href="{{ SITEURL }}/{{ cat.url }}">{{ cat }}</a>
+                    </li>
+                </ul>
+                {% endfor %}
+            </nav>
+            <div class="contacts-info">
+                <p class="contact"><a href="https://t.me/rocanten" target="_blank">@telegram</a></p>
+                <p class="contact"><a href="https://github.com/Rocanten" target="_blank">@github</a></p>
+                <p class="contact"><a href="https://www.linkedin.com/in/rocanten" target="_blank">@linkedin</a></p>
+            </div>
+        </div>
+    </div>
+    <main class = "content pure-u-1 pure-u-md-3-4">
+    {% block content_title %}
+    {% endblock %}
+    {% block content %}
+    {% endblock %}
+    </main>
+</body>
+</html>

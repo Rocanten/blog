@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+          <title>Блог Олега Прокофьева - Автоматический деплой FastAPI в Яндекс Облако при помощи Github Actions и Docker</title>
+        <meta charset="utf-8" />
+        <meta name="generator" content="Pelican" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link href="https://rocanten.ru/feeds/all.atom.xml" type="application/atom+xml" rel="alternate" title="Блог Олега Прокофьева Full Atom Feed" />
+        <link href="https://rocanten.ru/feeds/devops.atom.xml" type="application/atom+xml" rel="alternate" title="Блог Олега Прокофьева Categories Atom Feed" />
+
+
+
+
+
+        <link href='https://fonts.googleapis.com/css?family=Roboto' rel='stylesheet'>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/purecss@3.0.0/build/pure-min.css" integrity="sha384-X38yfunGUhNzHpBaEBsWLO+A0HDYOQi8ufWDkZ0k9e0eXz/tH3II7uKZ9msv++Ls" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/purecss@3.0.0/build/grids-responsive-min.css">
+        <link rel="stylesheet" href="/theme/css/styles.css">
+        <link rel="stylesheet" href="/theme/css/typebase.css">
+        <!-- Google tag (gtag.js) -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-3GRRGS2JQX"></script>
+        <script>
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+
+          gtag('config', 'G-3GRRGS2JQX');
+        </script>
+        <!-- Yandex.Metrika counter -->
+        <script type="text/javascript" >
+           (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+           m[i].l=1*new Date();
+           for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
+           k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+           (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+
+           ym(95028658, "init", {
+                clickmap:true,
+                trackLinks:true,
+                accurateTrackBounce:true
+           });
+        </script>
+        <noscript><div><img src="https://mc.yandex.ru/watch/95028658" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
+        <!-- /Yandex.Metrika counter -->
+</head>
+
+
+<body>
+    <div class="sidebar pure-u-1 pure-u-md-1-4">
+        <div class="header">
+            <p class="brand-title"><a class="title" href="https://rocanten.ru">Блог Олега Прокофьева</a></p>
+            <h2 class="brand-tagline"> Пишу на темы:</h2>
+
+            <nav class="nav">
+                <ul class="nav-list">
+                    <li class="nav-item">
+                        <a class="pure-button" href="https://rocanten.ru/category/devops.html">devops</a>
+                    </li>
+                </ul>
+            </nav>
+            <div class="contacts-info">
+                <p class="contact"><a href="https://t.me/rocanten" target="_blank">@telegram</a></p>
+                <p class="contact"><a href="https://github.com/Rocanten" target="_blank">@github</a></p>
+                <p class="contact"><a href="https://www.linkedin.com/in/rocanten" target="_blank">@linkedin</a></p>
+            </div>
+        </div>
+    </div>
+    <main class = "content pure-u-1 pure-u-md-3-4">
+  <header>
+ 
+  </header>
+  <footer class="post-meta">
+    <time class="published" datetime="2022-08-31T10:20:00+03:00">
+      Wed 31 August 2022
+    </time>
+    <div class="category">
+        Category: <a class="post-category button-tag" href="https://rocanten.ru/category/devops.html">devops</a>
+    </div>
+  </footer><!-- /.post-info -->
+  <article>
+    <h1>Автоматический деплой FastAPI в Яндекс Облако при помощи Github Actions и Docker</h1>
+<p>При помощи данного рецепта можно значительно упростить себе жизнь и настроить автодеплой в Яндекс Облако(да и в любое другое облако) приложения на основе FastAPI.</p>
+<p>Общая схема процесса:</p>
+<p><img alt="deploy-github-yandex.png" src="https://rocanten.ru/images/deploy-github-yandex.png"></p>
+<h2>1. Минимальное приложение FastAPI</h2>
+<p>Мы будем рассматривать процесс деплоя на примере базового приложения FastAPI. Ниже его код.</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span> <span class="nn">fastapi</span> <span class="kn">import</span> <span class="n">FastAPI</span>
+
+<span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">()</span>
+
+<span class="nd">@app</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;/hello&quot;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">say_hello</span><span class="p">():</span>
+    <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;Hello&quot;</span><span class="p">:</span> <span class="s2">&quot;World&quot;</span><span class="p">}</span>
+</code></pre></div>
+
+<p>Наше минимальное приложение делает следующее:</p>
+<ol>
+<li>Импортирует FastAPI (его сначала надо установить <a href="https://fastapi.tiangolo.com/#installation">https://fastapi.tiangolo.com/#installation</a>)</li>
+<li>Создаем приложение FastAPI</li>
+<li>Определяем один ресурс нашего api GET /hello</li>
+<li>Данный ресурс обрабатывается функцией say_hello(), которая возвращает наш json {"Hello": "World"}</li>
+</ol>
+<p>Подробнее про FastAPI можно почитать в официальной документации <a href="https://fastapi.tiangolo.com/tutorial/">https://fastapi.tiangolo.com/tutorial/</a></p>
+<p>Запустить и протестировать наше приложение можно командой uvicorn main:app.</p>
+<h2>2. Упаковываем приложение в Docker</h2>
+<p>Для того, чтобы деплоить автоматически и не задумываться что там может пойти не так, нам нужно упаковать наше приложение в Docker образ из которого мы сможем деплоить куда угодно.</p>
+<p>Я предпочитаю всегда работать с Docker контейнерами, даже во время разработки на локальной машине. Это позволяет не засорять свою ОС различным софтом, пакетами и прочими зависимостями, а также я всегда уверен, что мое приложение в любой момент без проблем задеплоится.</p>
+<p>Итак, создадим наш Dockerfile в корне проекта. </p>
+<div class="highlight"><pre><span></span><code><span class="l l-Scalar l-Scalar-Plain">FROM python:3.9</span>
+<span class="l l-Scalar l-Scalar-Plain">WORKDIR /code</span>
+<span class="l l-Scalar l-Scalar-Plain">COPY ./requirements.txt /code/requirements.txt</span>
+<span class="l l-Scalar l-Scalar-Plain">RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt</span>
+<span class="l l-Scalar l-Scalar-Plain">COPY . /code</span>
+<span class="l l-Scalar l-Scalar-Plain">RUN [&quot;python&quot;, &quot;-m&quot;, &quot;pytest&quot;]</span>
+<span class="l l-Scalar l-Scalar-Plain">CMD [&quot;uvicorn&quot;, &quot;app.main:app&quot;, &quot;--host&quot;, &quot;0.0.0.0&quot;, &quot;--port&quot;, &quot;8080&quot;, &quot;--reload&quot;]</span>
+</code></pre></div>
+
+<p>Разберем каждую строку.
+<br /> <br />
+<br /> <br />
+За основу нашего образа берем контейнер с Python нужной нам версии:</p>
+<div class="highlight"><pre><span></span><code><span class="l l-Scalar l-Scalar-Plain">FROM python:3.9</span>
+</code></pre></div>
+
+<p><br /> <br />
+Устанавливаем /code рабочей директорией:</p>
+<div class="highlight"><pre><span></span><code><span class="l l-Scalar l-Scalar-Plain">WORKDIR /code</span>
+</code></pre></div>
+
+<p><br /> <br />
+Копируем в нашу рабочую директорию файл с зависимостями:</p>
+<div class="highlight"><pre><span></span><code><span class="l l-Scalar l-Scalar-Plain">COPY ./requirements.txt /code/requirements.txt</span>
+</code></pre></div>
+
+<p><br /> <br />
+Устанавливаем все зависимости нашего приложения. Флаг --no-cache-dir нужен, чтобы Docker не кэшировал зависимости. Если его не указать, размер образа будет больше.</p>
+<div class="highlight"><pre><span></span><code><span class="l l-Scalar l-Scalar-Plain">RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt</span>
+</code></pre></div>
+
+<p><br /> <br />
+Копируем весь код из текущей директории на локальной машине(наш проект) в папку /code контейнера</p>
+<div class="highlight"><pre><span></span><code><span class="l l-Scalar l-Scalar-Plain">COPY . /code</span>
+</code></pre></div>
+
+<p><br /> <br />
+Запускаем тесты, если есть. Я всегда включаю прогон тестов на стадию сборки контейнера, чтобы отловить баги на самом раннем этапе</p>
+<div class="highlight"><pre><span></span><code><span class="l l-Scalar l-Scalar-Plain">RUN [&quot;python&quot;, &quot;-m&quot;, &quot;pytest&quot;]</span>
+</code></pre></div>
+
+<p><br /> <br />
+Собственно команда запуска сервера:</p>
+<div class="highlight"><pre><span></span><code><span class="l l-Scalar l-Scalar-Plain">CMD [&quot;uvicorn&quot;, &quot;app.main:app&quot;, &quot;--host&quot;, &quot;0.0.0.0&quot;, &quot;--port&quot;, &quot;8080&quot;, &quot;--reload&quot;]</span>
+</code></pre></div>
+
+<p><br /> <br />
+Теперь можно локально собрать наш образ командой</p>
+<div class="highlight"><pre><span></span><code><span class="l l-Scalar l-Scalar-Plain">docker build -t helloapi .</span>
+</code></pre></div>
+
+<p><br /> <br />
+И далее запустить контейнер:</p>
+<div class="highlight"><pre><span></span><code><span class="l l-Scalar l-Scalar-Plain">docker run -p 8080:8080 --name helloapi-container -v &quot;${path}:/code&quot; helloapi</span>
+</code></pre></div>
+
+<p>Подробнее о Dockerfile и работе с контейнерами читаем в официальном туториале: <a href="https://docs.docker.com/get-started/">https://docs.docker.com/get-started/</a></p>
+<h2>3. Создаем конфигурацию workflows для Github Actions</h2>
+<p>Github Actions подхватывает файл с названием ветки,  например для main: .github/workflows/main.yml</p>
+<p>В этом файле должны быть описаны все jobs и соответствующие им шаги. У нас будет два “джоба”: build и deploy.
+<br /> <br />
+Итак, весь файл:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ci</span>
+
+<span class="nt">on</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">push</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">branches</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&#39;main&#39;</span>
+
+<span class="nt">jobs</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">build</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">runs-on</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ubuntu-latest</span>
+<span class="w">    </span><span class="nt">steps</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span>
+<span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Checkout</span>
+<span class="w">        </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">actions/checkout@v2</span>
+<span class="w">      </span><span class="p p-Indicator">-</span>
+<span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Yandex Cloud login</span>
+<span class="w">        </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">yc-actions/yc-cr-login@v1</span>
+<span class="w">        </span><span class="nt">with</span><span class="p">:</span>
+<span class="w">          </span><span class="nt">yc-sa-json-credentials</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${{ secrets.YC_SA_JSON_CREDENTIALS }}</span>
+<span class="w">      </span><span class="p p-Indicator">-</span>
+<span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Build, tag, and push image to Yandex Cloud Container Registry</span>
+<span class="w">        </span><span class="nt">env</span><span class="p">:</span>
+<span class="w">          </span><span class="nt">CR_REGISTRY</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${{secrets.YANDEX_REGISTRY_ID}}</span>
+<span class="w">          </span><span class="nt">CR_REPO</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${{secrets.YANDEX_REPO_NAME}}</span>
+<span class="w">          </span><span class="nt">IMAGE_TAG</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${{ github.sha }}</span>
+<span class="w">          </span><span class="nt">VM_ID</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${{secrets.VM_ID}}</span>
+<span class="w">        </span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<span class="w">          </span><span class="no">docker build -t cr.yandex/$CR_REGISTRY/$CR_REPO:$IMAGE_TAG .</span>
+<span class="w">          </span><span class="no">docker push cr.yandex/$CR_REGISTRY/$CR_REPO:$IMAGE_TAG</span>
+<span class="w">  </span><span class="nt">deploy</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">needs</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">build</span>
+<span class="w">    </span><span class="nt">runs-on</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ubuntu-latest</span>
+<span class="w">    </span><span class="nt">steps</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Deploy to server via ssh</span>
+<span class="w">        </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">appleboy/ssh-action@master</span>
+<span class="w">        </span><span class="nt">with</span><span class="p">:</span>
+<span class="w">          </span><span class="nt">host</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${{ secrets.HOST }}</span>
+<span class="w">          </span><span class="nt">username</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${{ secrets.USERNAME }}</span>
+<span class="w">          </span><span class="nt">key</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${{ secrets.KEY }}</span>
+<span class="w">          </span><span class="nt">port</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${{ secrets.PORT }}</span>
+<span class="w">          </span><span class="nt">script</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<span class="w">            </span><span class="no">sudo docker pull cr.yandex/${{secrets.YANDEX_REGISTRY_ID}}/${{secrets.YANDEX_REPO_NAME}}:${{github.sha}}</span>
+<span class="w">            </span><span class="no">sudo docker rm -f ${{secrets.PROJECT_NAME}}</span>
+<span class="w">            </span><span class="no">sudo docker run -d -p 8080:8080 --name ${{secrets.PROJECT_NAME}} --hostname backend -e JIRA_SERVER_PERSONAL_TOKEN=${{secrets.JIRA_SERVER_PERSONAL_TOKEN}} -e JIRA_SERVER_BASE_URL=${{secrets.JIRA_SERVER_BASE_URL}} -e SERVICE_ADDRESS=${{secrets.SERVICE_ADDRESS}}  -e MATTERMOST_BASE_URL=${{secrets.MATTERMOST_BASE_URL}} -e MATTERMOST_TOKEN=${{secrets.MATTERMOST_TOKEN}} -e YANDEX_CONNECT_BASE_URL=${{secrets.YANDEX_CONNECT_BASE_URL}} -e YANDEX_ORG_ID=${{secrets.YANDEX_ORG_ID}} -e YANDEX_TOKEN=${{secrets.YANDEX_TOKEN}}  -e YANDEX_TRACKER_BASE_URL=${{secrets.YANDEX_TRACKER_BASE_URL}} cr.yandex/${{secrets.YANDEX_REGISTRY_ID}}/${{secrets.YANDEX_REPO_NAME}}:${{github.sha}}  </span>
+<span class="w">            </span><span class="no">sudo docker network connect network hippas-backend</span>
+</code></pre></div>
+
+<p>Рассмотрим подробно.</p>
+<h3>Trigger</h3>
+<p>Тут все просто. Сообщаем Github Actions по какому триггеру будет выполняться workflow.</p>
+<div class="highlight"><pre><span></span><code><span class="nt">on</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">push</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">branches</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&#39;main&#39;</span>
+</code></pre></div>
+
+<h3>Build Job</h3>
+<p>Сообщаем раннеру Github на чем будем билдить наш образ. У Github выбор не большой, поэтому берем последнюю Ubuntu</p>
+<div class="highlight"><pre><span></span><code><span class="nt">jobs</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">build</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">runs-on</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ubuntu-latest</span>
+</code></pre></div>
+
+<p><br /> <br />
+На этом шаге вызываем стандартный Action, который скачивает наш репозиторий на раннер</p>
+<div class="highlight"><pre><span></span><code><span class="p p-Indicator">-</span>
+<span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Checkout</span>
+<span class="w">        </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">actions/checkout@v2</span>
+</code></pre></div>
+
+<p><br /> <br />
+Логинимся в яндексовой консоли припомощи яндексового Action. Про параметр YC_SA_JSON_CREDENTIALS напишу позже</p>
+<div class="highlight"><pre><span></span><code><span class="p p-Indicator">-</span>
+<span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Yandex Cloud login</span>
+<span class="w">        </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">yc-actions/yc-cr-login@v1</span>
+<span class="w">        </span><span class="nt">with</span><span class="p">:</span>
+<span class="w">          </span><span class="nt">yc-sa-json-credentials</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${{ secrets.YC_SA_JSON_CREDENTIALS }}</span>
+</code></pre></div>
+
+<p><br /> <br />
+Устанавливаем env переменные(о них позже) и выполняем две команды</p>
+<div class="highlight"><pre><span></span><code><span class="w"> </span><span class="p p-Indicator">-</span>
+<span class="w">        </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Build, tag, and push image to Yandex Cloud Container Registry</span>
+<span class="w">        </span><span class="nt">env</span><span class="p">:</span>
+<span class="w">          </span><span class="nt">CR_REGISTRY</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${{secrets.YANDEX_REGISTRY_ID}}</span>
+<span class="w">          </span><span class="nt">CR_REPO</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${{secrets.YANDEX_REPO_NAME}}</span>
+<span class="w">          </span><span class="nt">IMAGE_TAG</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${{ github.sha }}</span>
+<span class="w">          </span><span class="nt">VM_ID</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">${{secrets.VM_ID}}</span>
+<span class="w">        </span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<span class="w">          </span><span class="no">docker build -t cr.yandex/$CR_REGISTRY/$CR_REPO:$IMAGE_TAG .</span>
+<span class="w">          </span><span class="no">docker push cr.yandex/$CR_REGISTRY/$CR_REPO:$IMAGE_TAG</span>
+</code></pre></div>
+
+<p><br /> <br />
+Билдим наш образ из исходников и проставляем в качестве тега путь до яндекс registry. В качестве IMAGE_TAG используется переменная github.sha, вычисляющаяся из хэша нашего коммита</p>
+<div class="highlight"><pre><span></span><code>docker<span class="w"> </span>build<span class="w"> </span>-t<span class="w"> </span>cr.yandex/<span class="nv">$CR_REGISTRY</span>/<span class="nv">$CR_REPO</span>:<span class="nv">$IMAGE_TAG</span><span class="w"> </span>.
+</code></pre></div>
+
+<p><br /> <br />
+Осталось лишь запушить наш образ в registry Яндекса</p>
+<div class="highlight"><pre><span></span><code>docker<span class="w"> </span>push<span class="w"> </span>cr.yandex/<span class="nv">$CR_REGISTRY</span>/<span class="nv">$CR_REPO</span>:<span class="nv">$IMAGE_TAG</span>
+</code></pre></div>
+
+<h3>Deploy Job</h3>
+<p>needs указывает, что наш deploy должен проходить после завершения build:</p>
+<div class="highlight"><pre><span></span><code><span class="w"> </span><span class="nt">deploy</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">needs</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">build</span>
+<span class="w">    </span><span class="nt">runs-on</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ubuntu-latest</span>
+</code></pre></div>
+
+<p><br /> <br />
+Используем Action для выполнения команд через ssh https://github.com/appleboy/ssh-action</p>
+<div class="highlight"><pre><span></span><code><span class="w">    </span><span class="nt">steps</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Deploy to server via ssh</span>
+<span class="w">        </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">appleboy/ssh-action@master</span>
+</code></pre></div>
+
+<p><br /> <br />
+Далее мы выполняем команды на нашем сервере.
+<br /> <br /></p>
+<p>Скачиваем сбилденный ранее образ</p>
+<div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>docker<span class="w"> </span>pull<span class="w"> </span>cr.yandex/<span class="si">${</span><span class="p">{secrets.YANDEX_REGISTRY_ID</span><span class="si">}</span><span class="o">}</span>/<span class="si">${</span><span class="p">{secrets.YANDEX_REPO_NAME</span><span class="si">}</span><span class="o">}</span>:<span class="si">${</span><span class="p">{github.sha</span><span class="si">}</span><span class="o">}</span>
+</code></pre></div>
+
+<p><br /> <br />
+Удаляем предыдущий контейнер если есть. Он нам больше не нужен. -f форсирует удаление если контейнер запущен</p>
+<div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>docker<span class="w"> </span>rm<span class="w"> </span>-f<span class="w"> </span><span class="si">${</span><span class="p">{secrets.PROJECT_NAME</span><span class="si">}</span><span class="o">}</span>
+</code></pre></div>
+
+<p><br /> <br />
+Запускаем контейнер из нашего образа</p>
+<div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>docker<span class="w"> </span>run<span class="w"> </span>-d<span class="w"> </span>-p<span class="w"> </span><span class="m">8080</span>:8080<span class="w"> </span>--name<span class="w"> </span><span class="si">${</span><span class="p">{secrets.PROJECT_NAME</span><span class="si">}</span><span class="o">}</span><span class="w">  </span>cr.yandex/<span class="si">${</span><span class="p">{secrets.YANDEX_REGISTRY_ID</span><span class="si">}</span><span class="o">}</span>/<span class="si">${</span><span class="p">{secrets.YANDEX_REPO_NAME</span><span class="si">}</span><span class="o">}</span>:<span class="si">${</span><span class="p">{github.sha</span><span class="si">}</span><span class="o">}</span><span class="w">  </span>
+</code></pre></div>
+
+<p>Вот и все, настройка на уровне кода закончена. Осталось настроить сервисы.</p>
+<p>Но сначала надо почитать документацию по Github Actions: <a href="https://docs.github.com/en/actions/using-workflows/about-workflows">https://docs.github.com/en/actions/using-workflows/about-workflows</a></p>
+<h2>4. Настройка Яндекс Облака</h2>
+<p>Здесь все достаточно просто. Нам нужно создать виртуальную машину на основе Ubuntu и установить на нее Docker. При создании машины нужно также создать сервисный аккаунт и сохранить приватный ключ для доступа к ВМ.</p>
+<p>Также необходимо сохранить следующие данные:</p>
+<ol>
+<li>Идентификатор виртуальной машины</li>
+<li>ID yandex docker registry</li>
+<li>Приватный ключ для доступа к ВМ</li>
+<li>JSON  с данными авторизации сервисного аккаунта</li>
+<li>Название репозитория docker образов</li>
+</ol>
+<p>Последний можно получить воспользовавшись инструкцией: <a href="https://cloud.yandex.ru/docs/cli/operations/authentication/service-account">https://cloud.yandex.ru/docs/cli/operations/authentication/service-account</a></p>
+<h2>5. Настройка Github</h2>
+<p>В Gihub нужно настроить секреты, которые будут использованы при билде и деплое.</p>
+<aside>
+💡 Крайне важно помнить, что нужно хранить в секретах репозитория все внешние данные(например, пароли, урлы и тд). Хранить их в коде - плохая идея.
+
+</aside>
+
+<p>Настроить секреты можно в разделе Settings→Secrets→Actions репозитория на Github.</p>
+<p>Параметров надо указать много, так что перечислю их все списком с пояснениями:</p>
+<ul>
+<li>YC_SA_JSON_CREDENTIALS - json key, полученный на шаге 4</li>
+<li>YANDEX_REGISTRY_ID - id docker репозитория яндекс облака</li>
+<li>YANDEX_REPO_NAME - название репозитория docker образов яндекс облака</li>
+<li>VM_ID - id виртуальной машины в Яндекс Облаке</li>
+<li>PROJECT_NAME - название проекта</li>
+</ul>
+<h2>6. Заключение</h2>
+<p>Вот и все. Теперь каждый раз при выполнении push или мержа в ветку main, будут запускаться наши jobs. Посмотреть выполнение можно во вкладке Actions репозитория.</p>
+<p>Важно, что по аналогии можно запилить билд и деплой практически любого приложения в любое облако(или даже просто на физический сервер).</p>
+<p>Разумеется, для больших проектов было бы неплохо использовать kubernetes и прочую оркестрацию, но для небольших проектов приведенный способ работает на ура и значительно упрощает разработку по сравнению с классическим “git pull на сервере”</p>
+<p><br /><br /><br /><br /><br /></p>
+  </article>
+    </main>
+</body>
+</html>

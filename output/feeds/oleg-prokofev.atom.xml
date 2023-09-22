@@ -1,0 +1,593 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom"><title>Блог Олега Прокофьева - Олег Прокофьев</title><link href="https://rocanten.ru/" rel="alternate"></link><link href="https://rocanten.ru/feeds/oleg-prokofev.atom.xml" rel="self"></link><id>https://rocanten.ru/</id><updated>2023-09-22T23:16:00+03:00</updated><subtitle>Пишу на темы:</subtitle><entry><title>Настройка логирования в docker при помощи Loki на s3 и Grafana</title><link href="https://rocanten.ru/nastrojka-logirovaniya-v-docker-pri-pomoshchi-loki-na-s3-i-grafana.html" rel="alternate"></link><published>2023-09-22T23:16:00+03:00</published><updated>2023-09-22T23:16:00+03:00</updated><author><name>Олег Прокофьев</name></author><id>tag:rocanten.ru,2023-09-22:/nastrojka-logirovaniya-v-docker-pri-pomoshchi-loki-na-s3-i-grafana.html</id><summary type="html">&lt;p&gt;Настройка логов на окружении, где размещены ваши сервисы позволяет сэкономить многие часы отладки и поиска неисправностей в продакшене. На самом деле, поднять полноценную систему логирования на сервере с Docker - не самая сложная задача. Давайте посмотрим как это сделать.&lt;/p&gt;</summary><content type="html">&lt;h1&gt;Настройка логирования в docker при помощи Loki на s3 и Grafana&lt;/h1&gt;
+&lt;h2&gt;Обзор&lt;/h2&gt;
+&lt;p&gt;Для начала, давайте посмотрим верхнеуровнево на то, что мы хотим сделать&lt;/p&gt;
+&lt;p&gt;&lt;img alt="docker_logging_diagram.png" src="https://rocanten.ru/images/docker_logging_diagram.png"&gt;&lt;/p&gt;
+&lt;p&gt;Кратко о том, что происходит на схеме:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;Docker logging driver считывает логи со всех контейнеров, которые логируют что-либо в нашем докере&lt;/li&gt;
+&lt;li&gt;Docker logging driver считывает логи из файлов логов хоста&lt;/li&gt;
+&lt;li&gt;Docker logging driver отправляет считанные логи в Loki через его API&lt;/li&gt;
+&lt;li&gt;За кадром loki индексирует логи и организует их хранение&lt;/li&gt;
+&lt;li&gt;Пользователь открывает Grafana(она поднята в том же докере, где и все остальное)&lt;/li&gt;
+&lt;li&gt;Grafana делает запросы к Loki на получение логов и визуализирует их&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;Перейдем к настройке всего этого добра.&lt;/p&gt;
+&lt;h2&gt;Установка и настройка драйвера логирования&lt;/h2&gt;
+&lt;p&gt;Чтобы в Loki появлялись логи, надо чтобы кто-то их туда отправлял. У Docker есть для этого специальный механизм - драйверы логирования. Они есть для многих сервисов, например для Splunk, Amazon Cloud Watch, ELK и многих других. Нас интересует плагин &lt;a href="https://grafana.com/docs/loki/latest/send-data/docker-driver/"&gt;Loki docker plugin&lt;/a&gt;. &lt;/p&gt;
+&lt;p&gt;Устанавливаем драйвер логирования:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;sudo docker plugin install grafana/loki-docker-driver:latest --alias loki --grant-all-permissions&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Теперь у нас есть возможность отправлять логи в Loki. Это можно сделать двумя способами:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;Указывать специальные параметры при запуске каждого контейнера&lt;/li&gt;
+&lt;li&gt;Принудительно отправлять все логи со всех запускаемых на данном хосте контейнеров в Loki&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;Я думаю, что в большинстве случаев второй вариант предпочтителен, так как требует настройки один раз и помогает собрать логи со всех, даже тех, кто этого не хочет.
+&lt;br /&gt;
+Для принудительной отправки логов в Loki, необходимо отредактировать файл /etc/docker/daemon.json. Создайте его, если его нет:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="p p-Indicator"&gt;{&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="s"&gt;&amp;quot;log-driver&amp;quot;&lt;/span&gt;&lt;span class="p p-Indicator"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s"&gt;&amp;quot;loki&amp;quot;&lt;/span&gt;&lt;span class="p p-Indicator"&gt;,&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="s"&gt;&amp;quot;log-opts&amp;quot;&lt;/span&gt;&lt;span class="p p-Indicator"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p p-Indicator"&gt;{&lt;/span&gt;
+&lt;span class="w"&gt;        &lt;/span&gt;&lt;span class="s"&gt;&amp;quot;loki-url&amp;quot;&lt;/span&gt;&lt;span class="p p-Indicator"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s"&gt;&amp;quot;http://127.0.0.1:3100/loki/api/v1/push&amp;quot;&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="p p-Indicator"&gt;}&lt;/span&gt;
+&lt;span class="p p-Indicator"&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Здесь все довольно просто:&lt;/p&gt;
+&lt;p&gt;log-driver указывает на то, что логирование будет осуществляться при помощи Loki&lt;/p&gt;
+&lt;p&gt;loki-url указывает адрес, по которому драйвер должен отправить логи.
+&lt;br /&gt;
+После изменений необходимо перезапустить сервис докера:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;sudo systemctl restart docker&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;С этого момента все контейнеры, которые были заново созданы, будут отправлять логи прямиком в Loki. Вот только его пока не существует.&lt;/p&gt;
+&lt;p&gt;Давайте исправим это&lt;/p&gt;
+&lt;h2&gt;Настройка бакета s3 в Яндекс.Облако&lt;/h2&gt;
+&lt;p&gt;Но сначала нужно получить параметры для доступа к бакету s3, в котором мы будем хранить наши логи. Я привожу инструкцию для Яндекс Облака, но примерно также можно сделать в любом другом сервисе, предоставляющим объектное хранилище.
+&lt;br /&gt;&lt;/p&gt;
+&lt;p&gt;Сначала создадим сервисный аккаунт:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;Заходим в консоль Яндекс Облако: &lt;a href="https://cloud.yandex.ru/"&gt;https://cloud.yandex.ru/&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Переходим во вкладку Сервисные аккаунты&lt;/li&gt;
+&lt;li&gt;Нажимаем кнопку Создать сервисный аккаунт&lt;/li&gt;
+&lt;li&gt;Задаем имя&lt;/li&gt;
+&lt;li&gt;Выбираем права: storage.editor, storage.uploader, storage.viewer&lt;/li&gt;
+&lt;li&gt;Создаем&lt;/li&gt;
+&lt;li&gt;Переходим в созданный сервисный аккаунт&lt;/li&gt;
+&lt;li&gt;Нажимаем кнопку Создать ключ&lt;/li&gt;
+&lt;li&gt;Выбираем Создать статический ключ доступа&lt;/li&gt;
+&lt;li&gt;Сохраняем себе идентификатор ключа и секретный ключ&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+&lt;p&gt;Теперь создаем бакет:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;В меню Все сервисы выбираем Object storage&lt;/li&gt;
+&lt;li&gt;Нажимаем кнопку Создать бакет&lt;/li&gt;
+&lt;li&gt;Задаем имя&lt;/li&gt;
+&lt;li&gt;Создаем бакет&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;Вот и все, url вашего бакета будет вида &lt;a href="http://storage.yandexcloud.net/"&gt;http://storage.yandexcloud.net/&lt;/a&gt; + название созданного бакета&lt;/p&gt;
+&lt;h2&gt;Настройка Loki для хранения логов в s3 хранилище&lt;/h2&gt;
+&lt;p&gt;&lt;br /&gt; 
+Создайте папку loki в домашней директории:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;mkdir ~/loki&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;br /&gt; 
+Перейдите в созданную папку:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;cd ~/loki&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;br /&gt; 
+Создайте и отредактируйте в домашней папке файл local-config.yaml:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="nt"&gt;auth_enabled&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;false&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;
+
+&lt;span class="nt"&gt;server&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="nt"&gt;http_listen_port&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;3100&lt;/span&gt;
+
+&lt;span class="nt"&gt;common&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="nt"&gt;ring&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="nt"&gt;instance_addr&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;127.0.0.1&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="nt"&gt;kvstore&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+&lt;span class="w"&gt;      &lt;/span&gt;&lt;span class="nt"&gt;store&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;memberlist&lt;/span&gt;
+&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="nt"&gt;replication_factor&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;1&lt;/span&gt;
+&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="nt"&gt;path_prefix&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;/etc/loki&lt;/span&gt;
+
+&lt;span class="nt"&gt;ingester&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="nt"&gt;wal&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="nt"&gt;dir&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s"&gt;&amp;quot;/tmp/wal&amp;quot;&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="nt"&gt;replay_memory_ceiling&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;4GB&lt;/span&gt;
+
+&lt;span class="nt"&gt;schema_config&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="nt"&gt;configs&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="p p-Indicator"&gt;-&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nt"&gt;from&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;2023-09-12&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="nt"&gt;store&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;boltdb-shipper&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="nt"&gt;object_store&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;s3&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="nt"&gt;schema&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;v11&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="nt"&gt;index&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+&lt;span class="w"&gt;      &lt;/span&gt;&lt;span class="nt"&gt;prefix&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;index_&lt;/span&gt;
+&lt;span class="w"&gt;      &lt;/span&gt;&lt;span class="nt"&gt;period&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;24h&lt;/span&gt;
+
+&lt;span class="nt"&gt;storage_config&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nt"&gt;boltdb_shipper&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+&lt;span class="w"&gt;   &lt;/span&gt;&lt;span class="nt"&gt;active_index_directory&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;/loki/index&lt;/span&gt;
+&lt;span class="w"&gt;   &lt;/span&gt;&lt;span class="nt"&gt;cache_location&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;/loki/index_cache&lt;/span&gt;
+&lt;span class="w"&gt;   &lt;/span&gt;&lt;span class="nt"&gt;shared_store&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;s3&lt;/span&gt;
+&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nt"&gt;aws&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+&lt;span class="w"&gt;   &lt;/span&gt;&lt;span class="nt"&gt;s3&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;s3://{Access key}:{Access key secret}@{s3 bucket url}&lt;/span&gt;
+&lt;span class="w"&gt;   &lt;/span&gt;&lt;span class="nt"&gt;s3forcepathstyle&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;true&lt;/span&gt;
+
+&lt;span class="nt"&gt;compactor&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="nt"&gt;working_directory&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;/loki/compactor&lt;/span&gt;
+&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="nt"&gt;shared_store&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;s3&lt;/span&gt;
+&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="nt"&gt;compaction_interval&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;5m&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;br /&gt;
+Разберем все параметры&lt;/p&gt;
+&lt;p&gt;&lt;br /&gt;
+Мы не планируем использовать multi tenancy, так что смело отключаем:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="nt"&gt;auth_enabled&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;false&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;br /&gt;
+Loki будет ожидать логи и запросы от графаны на 3100 порту:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="nt"&gt;http_listen_port&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;3100&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;br /&gt;
+IP адрес инстанса Loki:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="nt"&gt;instance_addr&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;127.0.0.1&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;br /&gt;
+Следующая настройка позволяет повысить доставляемость логов в постоянное хранилище за счет создания двух и более реплик Loki. Нам это сейчас не нужно, но в некоторых проектах может быть полезно.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="nt"&gt;store&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;memberlist&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;br /&gt;
+Следующий фрагмент определяет настройки ingester. Это компонент внутри Loki, который отвечает за запись логов в постоянное хранилище(например, s3) и считывает их оттуда.&lt;/p&gt;
+&lt;p&gt;dir указывает директорию, в которой будут храниться логи, пока они не отправлены в постоянное хранилище&lt;/p&gt;
+&lt;p&gt;replay_memory_ceiling указывает размер логов, хранящийся локально. Если объем логов достигнет данного значения, ingester их немедленно отправит в постоянное хранилище.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="nt"&gt;ingester&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="nt"&gt;wal&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="nt"&gt;dir&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s"&gt;&amp;quot;/tmp/wal&amp;quot;&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="nt"&gt;replay_memory_ceiling&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;4GB&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;br /&gt;
+Следующий блок определяет настройки хранения индекса. &lt;/p&gt;
+&lt;p&gt;from - начиная с какой даты будут созданы индексы&lt;/p&gt;
+&lt;p&gt;store - тип хранилища индексов. У нас будет boltdb-shipper, который позволяет использовать локальные индексы, которые периодически синхронизируются с хранилищем&lt;/p&gt;
+&lt;p&gt;object_store - тип хранилища логов. Мы настраиваем s3&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="nt"&gt;schema_config&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="nt"&gt;configs&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="p p-Indicator"&gt;-&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nt"&gt;from&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;2023-09-12&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="nt"&gt;store&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;boltdb-shipper&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="nt"&gt;object_store&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;s3&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="nt"&gt;schema&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;v11&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;br /&gt;
+Далее идут настройки boltdb_shipper.&lt;/p&gt;
+&lt;p&gt;active_index_directory - локальная директория для хранения индексов&lt;/p&gt;
+&lt;p&gt;cache_location - локальная директория для хранения кэша индексов&lt;/p&gt;
+&lt;p&gt;shared_store - постоянное хранилище индексов&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nt"&gt;boltdb_shipper&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+&lt;span class="w"&gt;   &lt;/span&gt;&lt;span class="nt"&gt;active_index_directory&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;/loki/index&lt;/span&gt;
+&lt;span class="w"&gt;   &lt;/span&gt;&lt;span class="nt"&gt;cache_location&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;/loki/index_cache&lt;/span&gt;
+&lt;span class="w"&gt;   &lt;/span&gt;&lt;span class="nt"&gt;shared_store&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;s3&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;br /&gt;
+Наконец-то, сами настройки s3. Тут все просто.&lt;/p&gt;
+&lt;p&gt;s3 - строка для доступа к бакету, где будут храниться логи&lt;/p&gt;
+&lt;p&gt;s3forcepathstyle - доступ к бакету по пути&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="w"&gt;   &lt;/span&gt;&lt;span class="nt"&gt;s3&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;s3://{Access key}:{Access key secret}@{s3 bucket url}&lt;/span&gt;
+&lt;span class="w"&gt;   &lt;/span&gt;&lt;span class="nt"&gt;s3forcepathstyle&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;true&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;br /&gt;
+Compactor оптимизирует шарды индексов для лучшей производительности&lt;/p&gt;
+&lt;p&gt;working_directory - сюда compactor будет скачивать файлы для последующей оптимизации&lt;/p&gt;
+&lt;p&gt;shared_store - постоянное хранилище индексов&lt;/p&gt;
+&lt;p&gt;compaction_interval - как часто проводить оптимизацию&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="nt"&gt;compactor&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="nt"&gt;working_directory&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;/loki/compactor&lt;/span&gt;
+&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="nt"&gt;shared_store&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;s3&lt;/span&gt;
+&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="nt"&gt;compaction_interval&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;5m&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h2&gt;Пишем docker-compose для Loki и Grafana&lt;/h2&gt;
+&lt;p&gt;Мы на финишной прямой! Осталось создать docker-compose.yml файл и запустить нашу связку Loki + Grafana.
+&lt;br /&gt;
+Итак, создадим на docker-compose.yml в той же папке ~/loki:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="nt"&gt;version&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s"&gt;&amp;quot;3&amp;quot;&lt;/span&gt;
+
+&lt;span class="nt"&gt;networks&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="nt"&gt;loki&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+
+&lt;span class="nt"&gt;services&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="nt"&gt;loki&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="nt"&gt;image&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;grafana/loki:2.9.0&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="nt"&gt;hostname&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;loki&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="nt"&gt;ports&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+&lt;span class="w"&gt;      &lt;/span&gt;&lt;span class="p p-Indicator"&gt;-&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s"&gt;&amp;quot;3100:3100&amp;quot;&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="nt"&gt;volumes&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+&lt;span class="w"&gt;      &lt;/span&gt;&lt;span class="p p-Indicator"&gt;-&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;~/loki:/etc/loki&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="nt"&gt;command&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;-config.file=/etc/loki/local-config.yaml&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="nt"&gt;networks&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+&lt;span class="w"&gt;      &lt;/span&gt;&lt;span class="p p-Indicator"&gt;-&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;loki&lt;/span&gt;
+
+&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="nt"&gt;grafana&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="nt"&gt;environment&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+&lt;span class="w"&gt;      &lt;/span&gt;&lt;span class="p p-Indicator"&gt;-&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;GF_PATHS_PROVISIONING=/etc/grafana/provisioning&lt;/span&gt;
+&lt;span class="w"&gt;      &lt;/span&gt;&lt;span class="p p-Indicator"&gt;-&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;GF_AUTH_ANONYMOUS_ENABLED=true&lt;/span&gt;
+&lt;span class="w"&gt;      &lt;/span&gt;&lt;span class="p p-Indicator"&gt;-&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;GF_AUTH_ANONYMOUS_ORG_ROLE=Admin&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="nt"&gt;entrypoint&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+&lt;span class="w"&gt;      &lt;/span&gt;&lt;span class="p p-Indicator"&gt;-&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;sh&lt;/span&gt;
+&lt;span class="w"&gt;      &lt;/span&gt;&lt;span class="p p-Indicator"&gt;-&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;-euc&lt;/span&gt;
+&lt;span class="w"&gt;      &lt;/span&gt;&lt;span class="p p-Indicator"&gt;-&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p p-Indicator"&gt;|&lt;/span&gt;
+&lt;span class="w"&gt;        &lt;/span&gt;&lt;span class="no"&gt;mkdir -p /etc/grafana/provisioning/datasources&lt;/span&gt;
+&lt;span class="w"&gt;        &lt;/span&gt;&lt;span class="no"&gt;cat &amp;lt;&amp;lt;EOF &amp;gt; /etc/grafana/provisioning/datasources/ds.yaml&lt;/span&gt;
+&lt;span class="w"&gt;        &lt;/span&gt;&lt;span class="no"&gt;apiVersion: 1&lt;/span&gt;
+&lt;span class="w"&gt;        &lt;/span&gt;&lt;span class="no"&gt;datasources:&lt;/span&gt;
+&lt;span class="w"&gt;        &lt;/span&gt;&lt;span class="no"&gt;- name: Loki&lt;/span&gt;
+&lt;span class="w"&gt;          &lt;/span&gt;&lt;span class="no"&gt;type: loki&lt;/span&gt;
+&lt;span class="w"&gt;          &lt;/span&gt;&lt;span class="no"&gt;access: proxy&lt;/span&gt;
+&lt;span class="w"&gt;          &lt;/span&gt;&lt;span class="no"&gt;orgId: 1&lt;/span&gt;
+&lt;span class="w"&gt;          &lt;/span&gt;&lt;span class="no"&gt;url: http://loki:3100&lt;/span&gt;
+&lt;span class="w"&gt;          &lt;/span&gt;&lt;span class="no"&gt;basicAuth: false&lt;/span&gt;
+&lt;span class="w"&gt;          &lt;/span&gt;&lt;span class="no"&gt;isDefault: true&lt;/span&gt;
+&lt;span class="w"&gt;          &lt;/span&gt;&lt;span class="no"&gt;version: 1&lt;/span&gt;
+&lt;span class="w"&gt;          &lt;/span&gt;&lt;span class="no"&gt;editable: false&lt;/span&gt;
+&lt;span class="w"&gt;        &lt;/span&gt;&lt;span class="no"&gt;EOF&lt;/span&gt;
+&lt;span class="w"&gt;        &lt;/span&gt;&lt;span class="no"&gt;/run.sh&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="nt"&gt;image&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;grafana/grafana:latest&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="nt"&gt;ports&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+&lt;span class="w"&gt;      &lt;/span&gt;&lt;span class="p p-Indicator"&gt;-&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s"&gt;&amp;quot;3200:3000&amp;quot;&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="nt"&gt;networks&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+&lt;span class="w"&gt;      &lt;/span&gt;&lt;span class="p p-Indicator"&gt;-&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;loki&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;br /&gt;
+Разумеется, рассмотрим все повнимательнее.
+&lt;br /&gt;
+Для начала задаем сеть с названием loki, чтобы у нас не было проблем с доступностью сервисов друг для друга:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="nt"&gt;networks&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="nt"&gt;loki&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;br /&gt;
+Далее идет блок с Loki.&lt;/p&gt;
+&lt;p&gt;image - берем стандартный docker образ grafana/loki&lt;/p&gt;
+&lt;p&gt;hostname - задаем на всякий случай hostname&lt;/p&gt;
+&lt;p&gt;ports - паблишим и маппим стандартный порт Loki&lt;/p&gt;
+&lt;p&gt;volumes - маппим нашу папку с настройками в директорию /etc/loki контейнера с Loki&lt;/p&gt;
+&lt;p&gt;command - указываем путь к файлу настройки&lt;/p&gt;
+&lt;p&gt;networks - включаем сервис loki в сеть loki&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="nt"&gt;services&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="nt"&gt;loki&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="nt"&gt;image&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;grafana/loki:2.9.0&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="nt"&gt;hostname&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;loki&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="nt"&gt;ports&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+&lt;span class="w"&gt;      &lt;/span&gt;&lt;span class="p p-Indicator"&gt;-&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s"&gt;&amp;quot;3100:3100&amp;quot;&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="nt"&gt;volumes&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+&lt;span class="w"&gt;      &lt;/span&gt;&lt;span class="p p-Indicator"&gt;-&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;~/loki:/etc/loki&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="nt"&gt;command&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;-config.file=/etc/loki/local-config.yaml&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="nt"&gt;networks&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+&lt;span class="w"&gt;      &lt;/span&gt;&lt;span class="p p-Indicator"&gt;-&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;loki&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;br /&gt;
+Теперь к настройкам Grafana.&lt;/p&gt;
+&lt;p&gt;Задаем переменные окружения:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="nt"&gt;grafana&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="nt"&gt;environment&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+&lt;span class="w"&gt;      &lt;/span&gt;&lt;span class="p p-Indicator"&gt;-&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;GF_PATHS_PROVISIONING=/etc/grafana/provisioning&lt;/span&gt;
+&lt;span class="w"&gt;      &lt;/span&gt;&lt;span class="p p-Indicator"&gt;-&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;GF_AUTH_ANONYMOUS_ENABLED=true&lt;/span&gt;
+&lt;span class="w"&gt;      &lt;/span&gt;&lt;span class="p p-Indicator"&gt;-&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;GF_AUTH_ANONYMOUS_ORG_ROLE=Admin&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;br /&gt;
+Теперь при помощи entrypoint указываем сервису, что нужно создать datasource, который будет обращаться к нашему loki. Это можно будет сделать руками после запуска контейнера в интерфейсе Grafana, но лучше автоматизировать&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="nt"&gt;entrypoint&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+&lt;span class="w"&gt;      &lt;/span&gt;&lt;span class="p p-Indicator"&gt;-&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;sh&lt;/span&gt;
+&lt;span class="w"&gt;      &lt;/span&gt;&lt;span class="p p-Indicator"&gt;-&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;-euc&lt;/span&gt;
+&lt;span class="w"&gt;      &lt;/span&gt;&lt;span class="p p-Indicator"&gt;-&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p p-Indicator"&gt;|&lt;/span&gt;
+&lt;span class="w"&gt;        &lt;/span&gt;&lt;span class="no"&gt;mkdir -p /etc/grafana/provisioning/datasources&lt;/span&gt;
+&lt;span class="w"&gt;        &lt;/span&gt;&lt;span class="no"&gt;cat &amp;lt;&amp;lt;EOF &amp;gt; /etc/grafana/provisioning/datasources/ds.yaml&lt;/span&gt;
+&lt;span class="w"&gt;        &lt;/span&gt;&lt;span class="no"&gt;apiVersion: 1&lt;/span&gt;
+&lt;span class="w"&gt;        &lt;/span&gt;&lt;span class="no"&gt;datasources:&lt;/span&gt;
+&lt;span class="w"&gt;        &lt;/span&gt;&lt;span class="no"&gt;- name: Loki&lt;/span&gt;
+&lt;span class="w"&gt;          &lt;/span&gt;&lt;span class="no"&gt;type: loki&lt;/span&gt;
+&lt;span class="w"&gt;          &lt;/span&gt;&lt;span class="no"&gt;access: proxy&lt;/span&gt;
+&lt;span class="w"&gt;          &lt;/span&gt;&lt;span class="no"&gt;orgId: 1&lt;/span&gt;
+&lt;span class="w"&gt;          &lt;/span&gt;&lt;span class="no"&gt;url: http://loki:3100&lt;/span&gt;
+&lt;span class="w"&gt;          &lt;/span&gt;&lt;span class="no"&gt;basicAuth: false&lt;/span&gt;
+&lt;span class="w"&gt;          &lt;/span&gt;&lt;span class="no"&gt;isDefault: true&lt;/span&gt;
+&lt;span class="w"&gt;          &lt;/span&gt;&lt;span class="no"&gt;version: 1&lt;/span&gt;
+&lt;span class="w"&gt;          &lt;/span&gt;&lt;span class="no"&gt;editable: false&lt;/span&gt;
+&lt;span class="w"&gt;        &lt;/span&gt;&lt;span class="no"&gt;EOF&lt;/span&gt;
+&lt;span class="w"&gt;        &lt;/span&gt;&lt;span class="no"&gt;/run.sh&lt;/span&gt;
+&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="w w-Error"&gt;  &lt;/span&gt;&lt;span class="nt"&gt;image&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;grafana/grafana:latest&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="nt"&gt;ports&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+&lt;span class="w"&gt;      &lt;/span&gt;&lt;span class="p p-Indicator"&gt;-&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s"&gt;&amp;quot;3200:3000&amp;quot;&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="nt"&gt;networks&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+&lt;span class="w"&gt;      &lt;/span&gt;&lt;span class="p p-Indicator"&gt;-&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;loki&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;br /&gt;
+Вот и все!
+&lt;br /&gt;
+Запускаем docker compose:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;sudo docker compose up -d --build&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Ждем, когда все запустится и переходим в браузере по адресу {ip сервера}:3200.&lt;/p&gt;
+&lt;p&gt;Должна открыться Grafana. Переходим в раздел Explore, выбираем нужный контейнер и делаем запросы логов.&lt;/p&gt;
+&lt;h2&gt;Что в итоге&lt;/h2&gt;
+&lt;p&gt;В итоге мы получили удобную систему логов для всех контейнеров, которые когда-либо будут созданы на данном хосте. Более того, мы можем перенаправлять в Loki логи с других хостов, просто указав внешний ip в настройках драйвера логирования докера.&lt;/p&gt;
+&lt;p&gt;Особенно приятно, что все логи теперь храняться в облаке на s3, а значит никуда не пропадут, могут храниться там вечно за копейки и больше у вас никогда не забьется диск из-за большого лог файла!&lt;/p&gt;
+&lt;p&gt;Ну и конечно же больше не надо лазить по бесконечным лог файлам грепами или выполнять docker logs.
+&lt;br /&gt;&lt;br /&gt;&lt;br /&gt;&lt;br /&gt;&lt;br /&gt;&lt;/p&gt;</content><category term="devops"></category></entry><entry><title>Автоматический деплой FastAPI в Яндекс Облако при помощи Github Actions и Docker</title><link href="https://rocanten.ru/avtomaticheskii-deploi-fastapi-v-iandeks-oblako-pri-pomoshchi-github-actions-i-docker.html" rel="alternate"></link><published>2022-08-31T10:20:00+03:00</published><updated>2022-08-31T10:20:00+03:00</updated><author><name>Олег Прокофьев</name></author><id>tag:rocanten.ru,2022-08-31:/avtomaticheskii-deploi-fastapi-v-iandeks-oblako-pri-pomoshchi-github-actions-i-docker.html</id><summary type="html">&lt;p&gt;При помощи данного рецепта можно значительно упростить себе жизнь и настроить автодеплой в Яндекс Облако(да и в любое другое облако) приложения на основе FastAPI.&lt;/p&gt;</summary><content type="html">&lt;h1&gt;Автоматический деплой FastAPI в Яндекс Облако при помощи Github Actions и Docker&lt;/h1&gt;
+&lt;p&gt;При помощи данного рецепта можно значительно упростить себе жизнь и настроить автодеплой в Яндекс Облако(да и в любое другое облако) приложения на основе FastAPI.&lt;/p&gt;
+&lt;p&gt;Общая схема процесса:&lt;/p&gt;
+&lt;p&gt;&lt;img alt="deploy-github-yandex.png" src="https://rocanten.ru/images/deploy-github-yandex.png"&gt;&lt;/p&gt;
+&lt;h2&gt;1. Минимальное приложение FastAPI&lt;/h2&gt;
+&lt;p&gt;Мы будем рассматривать процесс деплоя на примере базового приложения FastAPI. Ниже его код.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;fastapi&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;FastAPI&lt;/span&gt;
+
+&lt;span class="n"&gt;app&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;FastAPI&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+
+&lt;span class="nd"&gt;@app&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;get&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;/hello&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;say_hello&lt;/span&gt;&lt;span class="p"&gt;():&lt;/span&gt;
+    &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;Hello&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;World&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Наше минимальное приложение делает следующее:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;Импортирует FastAPI (его сначала надо установить &lt;a href="https://fastapi.tiangolo.com/#installation"&gt;https://fastapi.tiangolo.com/#installation&lt;/a&gt;)&lt;/li&gt;
+&lt;li&gt;Создаем приложение FastAPI&lt;/li&gt;
+&lt;li&gt;Определяем один ресурс нашего api GET /hello&lt;/li&gt;
+&lt;li&gt;Данный ресурс обрабатывается функцией say_hello(), которая возвращает наш json {"Hello": "World"}&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;Подробнее про FastAPI можно почитать в официальной документации &lt;a href="https://fastapi.tiangolo.com/tutorial/"&gt;https://fastapi.tiangolo.com/tutorial/&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;Запустить и протестировать наше приложение можно командой uvicorn main:app.&lt;/p&gt;
+&lt;h2&gt;2. Упаковываем приложение в Docker&lt;/h2&gt;
+&lt;p&gt;Для того, чтобы деплоить автоматически и не задумываться что там может пойти не так, нам нужно упаковать наше приложение в Docker образ из которого мы сможем деплоить куда угодно.&lt;/p&gt;
+&lt;p&gt;Я предпочитаю всегда работать с Docker контейнерами, даже во время разработки на локальной машине. Это позволяет не засорять свою ОС различным софтом, пакетами и прочими зависимостями, а также я всегда уверен, что мое приложение в любой момент без проблем задеплоится.&lt;/p&gt;
+&lt;p&gt;Итак, создадим наш Dockerfile в корне проекта. &lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;FROM python:3.9&lt;/span&gt;
+&lt;span class="l l-Scalar l-Scalar-Plain"&gt;WORKDIR /code&lt;/span&gt;
+&lt;span class="l l-Scalar l-Scalar-Plain"&gt;COPY ./requirements.txt /code/requirements.txt&lt;/span&gt;
+&lt;span class="l l-Scalar l-Scalar-Plain"&gt;RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt&lt;/span&gt;
+&lt;span class="l l-Scalar l-Scalar-Plain"&gt;COPY . /code&lt;/span&gt;
+&lt;span class="l l-Scalar l-Scalar-Plain"&gt;RUN [&amp;quot;python&amp;quot;, &amp;quot;-m&amp;quot;, &amp;quot;pytest&amp;quot;]&lt;/span&gt;
+&lt;span class="l l-Scalar l-Scalar-Plain"&gt;CMD [&amp;quot;uvicorn&amp;quot;, &amp;quot;app.main:app&amp;quot;, &amp;quot;--host&amp;quot;, &amp;quot;0.0.0.0&amp;quot;, &amp;quot;--port&amp;quot;, &amp;quot;8080&amp;quot;, &amp;quot;--reload&amp;quot;]&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Разберем каждую строку.
+&lt;br /&gt; &lt;br /&gt;
+&lt;br /&gt; &lt;br /&gt;
+За основу нашего образа берем контейнер с Python нужной нам версии:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;FROM python:3.9&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;br /&gt; &lt;br /&gt;
+Устанавливаем /code рабочей директорией:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;WORKDIR /code&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;br /&gt; &lt;br /&gt;
+Копируем в нашу рабочую директорию файл с зависимостями:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;COPY ./requirements.txt /code/requirements.txt&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;br /&gt; &lt;br /&gt;
+Устанавливаем все зависимости нашего приложения. Флаг --no-cache-dir нужен, чтобы Docker не кэшировал зависимости. Если его не указать, размер образа будет больше.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;br /&gt; &lt;br /&gt;
+Копируем весь код из текущей директории на локальной машине(наш проект) в папку /code контейнера&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;COPY . /code&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;br /&gt; &lt;br /&gt;
+Запускаем тесты, если есть. Я всегда включаю прогон тестов на стадию сборки контейнера, чтобы отловить баги на самом раннем этапе&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;RUN [&amp;quot;python&amp;quot;, &amp;quot;-m&amp;quot;, &amp;quot;pytest&amp;quot;]&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;br /&gt; &lt;br /&gt;
+Собственно команда запуска сервера:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;CMD [&amp;quot;uvicorn&amp;quot;, &amp;quot;app.main:app&amp;quot;, &amp;quot;--host&amp;quot;, &amp;quot;0.0.0.0&amp;quot;, &amp;quot;--port&amp;quot;, &amp;quot;8080&amp;quot;, &amp;quot;--reload&amp;quot;]&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;br /&gt; &lt;br /&gt;
+Теперь можно локально собрать наш образ командой&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;docker build -t helloapi .&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;br /&gt; &lt;br /&gt;
+И далее запустить контейнер:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;docker run -p 8080:8080 --name helloapi-container -v &amp;quot;${path}:/code&amp;quot; helloapi&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Подробнее о Dockerfile и работе с контейнерами читаем в официальном туториале: &lt;a href="https://docs.docker.com/get-started/"&gt;https://docs.docker.com/get-started/&lt;/a&gt;&lt;/p&gt;
+&lt;h2&gt;3. Создаем конфигурацию workflows для Github Actions&lt;/h2&gt;
+&lt;p&gt;Github Actions подхватывает файл с названием ветки,  например для main: .github/workflows/main.yml&lt;/p&gt;
+&lt;p&gt;В этом файле должны быть описаны все jobs и соответствующие им шаги. У нас будет два “джоба”: build и deploy.
+&lt;br /&gt; &lt;br /&gt;
+Итак, весь файл:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="nt"&gt;name&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;ci&lt;/span&gt;
+
+&lt;span class="nt"&gt;on&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="nt"&gt;push&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="nt"&gt;branches&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+&lt;span class="w"&gt;      &lt;/span&gt;&lt;span class="p p-Indicator"&gt;-&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s"&gt;&amp;#39;main&amp;#39;&lt;/span&gt;
+
+&lt;span class="nt"&gt;jobs&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="nt"&gt;build&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="nt"&gt;runs-on&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;ubuntu-latest&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="nt"&gt;steps&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+&lt;span class="w"&gt;      &lt;/span&gt;&lt;span class="p p-Indicator"&gt;-&lt;/span&gt;
+&lt;span class="w"&gt;        &lt;/span&gt;&lt;span class="nt"&gt;name&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;Checkout&lt;/span&gt;
+&lt;span class="w"&gt;        &lt;/span&gt;&lt;span class="nt"&gt;uses&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;actions/checkout@v2&lt;/span&gt;
+&lt;span class="w"&gt;      &lt;/span&gt;&lt;span class="p p-Indicator"&gt;-&lt;/span&gt;
+&lt;span class="w"&gt;        &lt;/span&gt;&lt;span class="nt"&gt;name&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;Yandex Cloud login&lt;/span&gt;
+&lt;span class="w"&gt;        &lt;/span&gt;&lt;span class="nt"&gt;uses&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;yc-actions/yc-cr-login@v1&lt;/span&gt;
+&lt;span class="w"&gt;        &lt;/span&gt;&lt;span class="nt"&gt;with&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+&lt;span class="w"&gt;          &lt;/span&gt;&lt;span class="nt"&gt;yc-sa-json-credentials&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;${{ secrets.YC_SA_JSON_CREDENTIALS }}&lt;/span&gt;
+&lt;span class="w"&gt;      &lt;/span&gt;&lt;span class="p p-Indicator"&gt;-&lt;/span&gt;
+&lt;span class="w"&gt;        &lt;/span&gt;&lt;span class="nt"&gt;name&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;Build, tag, and push image to Yandex Cloud Container Registry&lt;/span&gt;
+&lt;span class="w"&gt;        &lt;/span&gt;&lt;span class="nt"&gt;env&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+&lt;span class="w"&gt;          &lt;/span&gt;&lt;span class="nt"&gt;CR_REGISTRY&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;${{secrets.YANDEX_REGISTRY_ID}}&lt;/span&gt;
+&lt;span class="w"&gt;          &lt;/span&gt;&lt;span class="nt"&gt;CR_REPO&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;${{secrets.YANDEX_REPO_NAME}}&lt;/span&gt;
+&lt;span class="w"&gt;          &lt;/span&gt;&lt;span class="nt"&gt;IMAGE_TAG&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;${{ github.sha }}&lt;/span&gt;
+&lt;span class="w"&gt;          &lt;/span&gt;&lt;span class="nt"&gt;VM_ID&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;${{secrets.VM_ID}}&lt;/span&gt;
+&lt;span class="w"&gt;        &lt;/span&gt;&lt;span class="nt"&gt;run&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p p-Indicator"&gt;|&lt;/span&gt;
+&lt;span class="w"&gt;          &lt;/span&gt;&lt;span class="no"&gt;docker build -t cr.yandex/$CR_REGISTRY/$CR_REPO:$IMAGE_TAG .&lt;/span&gt;
+&lt;span class="w"&gt;          &lt;/span&gt;&lt;span class="no"&gt;docker push cr.yandex/$CR_REGISTRY/$CR_REPO:$IMAGE_TAG&lt;/span&gt;
+&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="nt"&gt;deploy&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="nt"&gt;needs&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;build&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="nt"&gt;runs-on&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;ubuntu-latest&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="nt"&gt;steps&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+&lt;span class="w"&gt;      &lt;/span&gt;&lt;span class="p p-Indicator"&gt;-&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nt"&gt;name&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;Deploy to server via ssh&lt;/span&gt;
+&lt;span class="w"&gt;        &lt;/span&gt;&lt;span class="nt"&gt;uses&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;appleboy/ssh-action@master&lt;/span&gt;
+&lt;span class="w"&gt;        &lt;/span&gt;&lt;span class="nt"&gt;with&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+&lt;span class="w"&gt;          &lt;/span&gt;&lt;span class="nt"&gt;host&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;${{ secrets.HOST }}&lt;/span&gt;
+&lt;span class="w"&gt;          &lt;/span&gt;&lt;span class="nt"&gt;username&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;${{ secrets.USERNAME }}&lt;/span&gt;
+&lt;span class="w"&gt;          &lt;/span&gt;&lt;span class="nt"&gt;key&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;${{ secrets.KEY }}&lt;/span&gt;
+&lt;span class="w"&gt;          &lt;/span&gt;&lt;span class="nt"&gt;port&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;${{ secrets.PORT }}&lt;/span&gt;
+&lt;span class="w"&gt;          &lt;/span&gt;&lt;span class="nt"&gt;script&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p p-Indicator"&gt;|&lt;/span&gt;
+&lt;span class="w"&gt;            &lt;/span&gt;&lt;span class="no"&gt;sudo docker pull cr.yandex/${{secrets.YANDEX_REGISTRY_ID}}/${{secrets.YANDEX_REPO_NAME}}:${{github.sha}}&lt;/span&gt;
+&lt;span class="w"&gt;            &lt;/span&gt;&lt;span class="no"&gt;sudo docker rm -f ${{secrets.PROJECT_NAME}}&lt;/span&gt;
+&lt;span class="w"&gt;            &lt;/span&gt;&lt;span class="no"&gt;sudo docker run -d -p 8080:8080 --name ${{secrets.PROJECT_NAME}} --hostname backend -e JIRA_SERVER_PERSONAL_TOKEN=${{secrets.JIRA_SERVER_PERSONAL_TOKEN}} -e JIRA_SERVER_BASE_URL=${{secrets.JIRA_SERVER_BASE_URL}} -e SERVICE_ADDRESS=${{secrets.SERVICE_ADDRESS}}  -e MATTERMOST_BASE_URL=${{secrets.MATTERMOST_BASE_URL}} -e MATTERMOST_TOKEN=${{secrets.MATTERMOST_TOKEN}} -e YANDEX_CONNECT_BASE_URL=${{secrets.YANDEX_CONNECT_BASE_URL}} -e YANDEX_ORG_ID=${{secrets.YANDEX_ORG_ID}} -e YANDEX_TOKEN=${{secrets.YANDEX_TOKEN}}  -e YANDEX_TRACKER_BASE_URL=${{secrets.YANDEX_TRACKER_BASE_URL}} cr.yandex/${{secrets.YANDEX_REGISTRY_ID}}/${{secrets.YANDEX_REPO_NAME}}:${{github.sha}}  &lt;/span&gt;
+&lt;span class="w"&gt;            &lt;/span&gt;&lt;span class="no"&gt;sudo docker network connect network hippas-backend&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Рассмотрим подробно.&lt;/p&gt;
+&lt;h3&gt;Trigger&lt;/h3&gt;
+&lt;p&gt;Тут все просто. Сообщаем Github Actions по какому триггеру будет выполняться workflow.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="nt"&gt;on&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="nt"&gt;push&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="nt"&gt;branches&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+&lt;span class="w"&gt;      &lt;/span&gt;&lt;span class="p p-Indicator"&gt;-&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="s"&gt;&amp;#39;main&amp;#39;&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h3&gt;Build Job&lt;/h3&gt;
+&lt;p&gt;Сообщаем раннеру Github на чем будем билдить наш образ. У Github выбор не большой, поэтому берем последнюю Ubuntu&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="nt"&gt;jobs&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+&lt;span class="w"&gt;  &lt;/span&gt;&lt;span class="nt"&gt;build&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="nt"&gt;runs-on&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;ubuntu-latest&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;br /&gt; &lt;br /&gt;
+На этом шаге вызываем стандартный Action, который скачивает наш репозиторий на раннер&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="p p-Indicator"&gt;-&lt;/span&gt;
+&lt;span class="w"&gt;        &lt;/span&gt;&lt;span class="nt"&gt;name&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;Checkout&lt;/span&gt;
+&lt;span class="w"&gt;        &lt;/span&gt;&lt;span class="nt"&gt;uses&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;actions/checkout@v2&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;br /&gt; &lt;br /&gt;
+Логинимся в яндексовой консоли припомощи яндексового Action. Про параметр YC_SA_JSON_CREDENTIALS напишу позже&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="p p-Indicator"&gt;-&lt;/span&gt;
+&lt;span class="w"&gt;        &lt;/span&gt;&lt;span class="nt"&gt;name&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;Yandex Cloud login&lt;/span&gt;
+&lt;span class="w"&gt;        &lt;/span&gt;&lt;span class="nt"&gt;uses&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;yc-actions/yc-cr-login@v1&lt;/span&gt;
+&lt;span class="w"&gt;        &lt;/span&gt;&lt;span class="nt"&gt;with&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+&lt;span class="w"&gt;          &lt;/span&gt;&lt;span class="nt"&gt;yc-sa-json-credentials&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;${{ secrets.YC_SA_JSON_CREDENTIALS }}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;br /&gt; &lt;br /&gt;
+Устанавливаем env переменные(о них позже) и выполняем две команды&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p p-Indicator"&gt;-&lt;/span&gt;
+&lt;span class="w"&gt;        &lt;/span&gt;&lt;span class="nt"&gt;name&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;Build, tag, and push image to Yandex Cloud Container Registry&lt;/span&gt;
+&lt;span class="w"&gt;        &lt;/span&gt;&lt;span class="nt"&gt;env&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+&lt;span class="w"&gt;          &lt;/span&gt;&lt;span class="nt"&gt;CR_REGISTRY&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;${{secrets.YANDEX_REGISTRY_ID}}&lt;/span&gt;
+&lt;span class="w"&gt;          &lt;/span&gt;&lt;span class="nt"&gt;CR_REPO&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;${{secrets.YANDEX_REPO_NAME}}&lt;/span&gt;
+&lt;span class="w"&gt;          &lt;/span&gt;&lt;span class="nt"&gt;IMAGE_TAG&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;${{ github.sha }}&lt;/span&gt;
+&lt;span class="w"&gt;          &lt;/span&gt;&lt;span class="nt"&gt;VM_ID&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;${{secrets.VM_ID}}&lt;/span&gt;
+&lt;span class="w"&gt;        &lt;/span&gt;&lt;span class="nt"&gt;run&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="p p-Indicator"&gt;|&lt;/span&gt;
+&lt;span class="w"&gt;          &lt;/span&gt;&lt;span class="no"&gt;docker build -t cr.yandex/$CR_REGISTRY/$CR_REPO:$IMAGE_TAG .&lt;/span&gt;
+&lt;span class="w"&gt;          &lt;/span&gt;&lt;span class="no"&gt;docker push cr.yandex/$CR_REGISTRY/$CR_REPO:$IMAGE_TAG&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;br /&gt; &lt;br /&gt;
+Билдим наш образ из исходников и проставляем в качестве тега путь до яндекс registry. В качестве IMAGE_TAG используется переменная github.sha, вычисляющаяся из хэша нашего коммита&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;docker&lt;span class="w"&gt; &lt;/span&gt;build&lt;span class="w"&gt; &lt;/span&gt;-t&lt;span class="w"&gt; &lt;/span&gt;cr.yandex/&lt;span class="nv"&gt;$CR_REGISTRY&lt;/span&gt;/&lt;span class="nv"&gt;$CR_REPO&lt;/span&gt;:&lt;span class="nv"&gt;$IMAGE_TAG&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;.
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;br /&gt; &lt;br /&gt;
+Осталось лишь запушить наш образ в registry Яндекса&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;docker&lt;span class="w"&gt; &lt;/span&gt;push&lt;span class="w"&gt; &lt;/span&gt;cr.yandex/&lt;span class="nv"&gt;$CR_REGISTRY&lt;/span&gt;/&lt;span class="nv"&gt;$CR_REPO&lt;/span&gt;:&lt;span class="nv"&gt;$IMAGE_TAG&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h3&gt;Deploy Job&lt;/h3&gt;
+&lt;p&gt;needs указывает, что наш deploy должен проходить после завершения build:&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nt"&gt;deploy&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="nt"&gt;needs&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;build&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="nt"&gt;runs-on&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;ubuntu-latest&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;br /&gt; &lt;br /&gt;
+Используем Action для выполнения команд через ssh https://github.com/appleboy/ssh-action&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="nt"&gt;steps&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+&lt;span class="w"&gt;      &lt;/span&gt;&lt;span class="p p-Indicator"&gt;-&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nt"&gt;name&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;Deploy to server via ssh&lt;/span&gt;
+&lt;span class="w"&gt;        &lt;/span&gt;&lt;span class="nt"&gt;uses&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="l l-Scalar l-Scalar-Plain"&gt;appleboy/ssh-action@master&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;br /&gt; &lt;br /&gt;
+Далее мы выполняем команды на нашем сервере.
+&lt;br /&gt; &lt;br /&gt;&lt;/p&gt;
+&lt;p&gt;Скачиваем сбилденный ранее образ&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;sudo&lt;span class="w"&gt; &lt;/span&gt;docker&lt;span class="w"&gt; &lt;/span&gt;pull&lt;span class="w"&gt; &lt;/span&gt;cr.yandex/&lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="p"&gt;{secrets.YANDEX_REGISTRY_ID&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="o"&gt;}&lt;/span&gt;/&lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="p"&gt;{secrets.YANDEX_REPO_NAME&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="o"&gt;}&lt;/span&gt;:&lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="p"&gt;{github.sha&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="o"&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;br /&gt; &lt;br /&gt;
+Удаляем предыдущий контейнер если есть. Он нам больше не нужен. -f форсирует удаление если контейнер запущен&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;sudo&lt;span class="w"&gt; &lt;/span&gt;docker&lt;span class="w"&gt; &lt;/span&gt;rm&lt;span class="w"&gt; &lt;/span&gt;-f&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="p"&gt;{secrets.PROJECT_NAME&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="o"&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;br /&gt; &lt;br /&gt;
+Запускаем контейнер из нашего образа&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;code&gt;sudo&lt;span class="w"&gt; &lt;/span&gt;docker&lt;span class="w"&gt; &lt;/span&gt;run&lt;span class="w"&gt; &lt;/span&gt;-d&lt;span class="w"&gt; &lt;/span&gt;-p&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="m"&gt;8080&lt;/span&gt;:8080&lt;span class="w"&gt; &lt;/span&gt;--name&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="p"&gt;{secrets.PROJECT_NAME&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="o"&gt;}&lt;/span&gt;&lt;span class="w"&gt;  &lt;/span&gt;cr.yandex/&lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="p"&gt;{secrets.YANDEX_REGISTRY_ID&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="o"&gt;}&lt;/span&gt;/&lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="p"&gt;{secrets.YANDEX_REPO_NAME&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="o"&gt;}&lt;/span&gt;:&lt;span class="si"&gt;${&lt;/span&gt;&lt;span class="p"&gt;{github.sha&lt;/span&gt;&lt;span class="si"&gt;}&lt;/span&gt;&lt;span class="o"&gt;}&lt;/span&gt;&lt;span class="w"&gt;  &lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Вот и все, настройка на уровне кода закончена. Осталось настроить сервисы.&lt;/p&gt;
+&lt;p&gt;Но сначала надо почитать документацию по Github Actions: &lt;a href="https://docs.github.com/en/actions/using-workflows/about-workflows"&gt;https://docs.github.com/en/actions/using-workflows/about-workflows&lt;/a&gt;&lt;/p&gt;
+&lt;h2&gt;4. Настройка Яндекс Облака&lt;/h2&gt;
+&lt;p&gt;Здесь все достаточно просто. Нам нужно создать виртуальную машину на основе Ubuntu и установить на нее Docker. При создании машины нужно также создать сервисный аккаунт и сохранить приватный ключ для доступа к ВМ.&lt;/p&gt;
+&lt;p&gt;Также необходимо сохранить следующие данные:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;Идентификатор виртуальной машины&lt;/li&gt;
+&lt;li&gt;ID yandex docker registry&lt;/li&gt;
+&lt;li&gt;Приватный ключ для доступа к ВМ&lt;/li&gt;
+&lt;li&gt;JSON  с данными авторизации сервисного аккаунта&lt;/li&gt;
+&lt;li&gt;Название репозитория docker образов&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;Последний можно получить воспользовавшись инструкцией: &lt;a href="https://cloud.yandex.ru/docs/cli/operations/authentication/service-account"&gt;https://cloud.yandex.ru/docs/cli/operations/authentication/service-account&lt;/a&gt;&lt;/p&gt;
+&lt;h2&gt;5. Настройка Github&lt;/h2&gt;
+&lt;p&gt;В Gihub нужно настроить секреты, которые будут использованы при билде и деплое.&lt;/p&gt;
+&lt;aside&gt;
+💡 Крайне важно помнить, что нужно хранить в секретах репозитория все внешние данные(например, пароли, урлы и тд). Хранить их в коде - плохая идея.
+
+&lt;/aside&gt;
+
+&lt;p&gt;Настроить секреты можно в разделе Settings→Secrets→Actions репозитория на Github.&lt;/p&gt;
+&lt;p&gt;Параметров надо указать много, так что перечислю их все списком с пояснениями:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;YC_SA_JSON_CREDENTIALS - json key, полученный на шаге 4&lt;/li&gt;
+&lt;li&gt;YANDEX_REGISTRY_ID - id docker репозитория яндекс облака&lt;/li&gt;
+&lt;li&gt;YANDEX_REPO_NAME - название репозитория docker образов яндекс облака&lt;/li&gt;
+&lt;li&gt;VM_ID - id виртуальной машины в Яндекс Облаке&lt;/li&gt;
+&lt;li&gt;PROJECT_NAME - название проекта&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2&gt;6. Заключение&lt;/h2&gt;
+&lt;p&gt;Вот и все. Теперь каждый раз при выполнении push или мержа в ветку main, будут запускаться наши jobs. Посмотреть выполнение можно во вкладке Actions репозитория.&lt;/p&gt;
+&lt;p&gt;Важно, что по аналогии можно запилить билд и деплой практически любого приложения в любое облако(или даже просто на физический сервер).&lt;/p&gt;
+&lt;p&gt;Разумеется, для больших проектов было бы неплохо использовать kubernetes и прочую оркестрацию, но для небольших проектов приведенный способ работает на ура и значительно упрощает разработку по сравнению с классическим “git pull на сервере”&lt;/p&gt;
+&lt;p&gt;&lt;br /&gt;&lt;br /&gt;&lt;br /&gt;&lt;br /&gt;&lt;br /&gt;&lt;/p&gt;</content><category term="devops"></category></entry></feed>

@@ -1,64 +1,86 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-        <meta charset="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <meta name="generator" content="Pelican" />
         <title>Блог Олега Прокофьева</title>
-        <link rel="stylesheet" href="/theme/css/main.css" />
+        <meta charset="utf-8" />
+        <meta name="generator" content="Pelican" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link href="https://rocanten.ru/feeds/all.atom.xml" type="application/atom+xml" rel="alternate" title="Блог Олега Прокофьева Full Atom Feed" />
+        <link href='https://fonts.googleapis.com/css?family=Roboto' rel='stylesheet'>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/purecss@3.0.0/build/pure-min.css" integrity="sha384-X38yfunGUhNzHpBaEBsWLO+A0HDYOQi8ufWDkZ0k9e0eXz/tH3II7uKZ9msv++Ls" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/purecss@3.0.0/build/grids-responsive-min.css">
+        <link rel="stylesheet" href="/theme/css/styles.css">
+        <link rel="stylesheet" href="/theme/css/typebase.css">
+        <!-- Google tag (gtag.js) -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-3GRRGS2JQX"></script>
+        <script>
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+
+          gtag('config', 'G-3GRRGS2JQX');
+        </script>
+        <!-- Yandex.Metrika counter -->
+        <script type="text/javascript" >
+           (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+           m[i].l=1*new Date();
+           for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
+           k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+           (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+
+           ym(95028658, "init", {
+                clickmap:true,
+                trackLinks:true,
+                accurateTrackBounce:true
+           });
+        </script>
+        <noscript><div><img src="https://mc.yandex.ru/watch/95028658" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
+        <!-- /Yandex.Metrika counter -->
 </head>
 
-<body id="index" class="home">
-        <header id="banner" class="body">
-                <h1><a href="/">Блог Олега Прокофьева</a></h1>
-                <nav><ul>
-                    <li><a href="/category/review.html">Review</a></li>
-                </ul></nav>
-        </header><!-- /#banner -->
 
-            <aside id="featured" class="body">
-                <article>
-                    <h1 class="entry-title"><a href="/my-first-review.html">My First Review</a></h1>
-<footer class="post-info">
-        <abbr class="published" title="2010-12-03T10:20:00+03:00">
-                Published: пт 03 декабря 2010
-        </abbr>
+<body>
+    <div class="sidebar pure-u-1 pure-u-md-1-4">
+        <div class="header">
+            <p class="brand-title"><a class="title" href="https://rocanten.ru">Блог Олега Прокофьева</a></p>
+            <h2 class="brand-tagline"> Пишу на темы:</h2>
 
-        <address class="vcard author">
-                By                         <a class="url fn" href="/author/oleg-prokofev.html">Олег Прокофьев</a>
-        </address>
-<p>In <a href="/category/review.html">Review</a>.</p>
+            <nav class="nav">
+                <ul class="nav-list">
+                    <li class="nav-item">
+                        <a class="pure-button" href="https://rocanten.ru/category/devops.html">devops</a>
+                    </li>
+                </ul>
+            </nav>
+            <div class="contacts-info">
+                <p class="contact"><a href="https://t.me/rocanten" target="_blank">@telegram</a></p>
+                <p class="contact"><a href="https://github.com/Rocanten" target="_blank">@github</a></p>
+                <p class="contact"><a href="https://www.linkedin.com/in/rocanten" target="_blank">@linkedin</a></p>
+            </div>
+        </div>
+    </div>
+    <main class = "content pure-u-1 pure-u-md-3-4">
+<section>
 
-</footer><!-- /.post-info --><h2>Title 1</h2>
-<p>Following is a review of my favorite mechanical keyboard.</p>                </article>
-            </aside><!-- /#featured -->
-        <section id="extras" class="body">
-                <div class="blogroll">
-                        <h2>links</h2>
-                        <ul>
-                            <li><a href="https://getpelican.com/">Pelican</a></li>
-                            <li><a href="https://www.python.org/">Python.org</a></li>
-                            <li><a href="https://palletsprojects.com/p/jinja/">Jinja2</a></li>
-                            <li><a href="#">You can modify those links in your config file</a></li>
-                        </ul>
-                </div><!-- /.blogroll -->
-                <div class="social">
-                        <h2>social</h2>
-                        <ul>
-
-                            <li><a href="#">You can add links in your config file</a></li>
-                            <li><a href="#">Another social link</a></li>
-                        </ul>
-                </div><!-- /.social -->
-        </section><!-- /#extras -->
-
-        <footer id="contentinfo" class="body">
-                <address id="about" class="vcard body">
-                Proudly powered by <a href="https://getpelican.com/">Pelican</a>, which takes great advantage of <a href="https://www.python.org/">Python</a>.
-                </address><!-- /#about -->
-
-                <p>The theme is by <a href="https://www.smashingmagazine.com/2009/08/designing-a-html-5-layout-from-scratch/">Smashing Magazine</a>, thanks!</p>
-        </footer><!-- /#contentinfo -->
-
+<div class="posts">
+        <div class="post"><article class="">
+                <header class="post-header"> <h2 class="post-title"><a href="https://rocanten.ru/nastrojka-logirovaniya-v-docker-pri-pomoshchi-loki-na-s3-i-grafana.html">Настройка логирования в docker при помощи Loki на s3 и Grafana</a><h2><a class="post-header" href="https://rocanten.ru/nastrojka-logirovaniya-v-docker-pri-pomoshchi-loki-na-s3-i-grafana.html" rel="bookmark" title="Permalink to Настройка логирования в docker при помощи Loki на s3 и Grafana"></a> </header>
+                <p class="post-meta">
+                    <time class="published" datetime="2023-09-22T23:16:00+03:00"> Fri 22 September 2023 </time>
+                    <a class="post-category button-tag"> devops </a>
+                </p><!-- /.post-info -->
+                <div class="post-description"> <p><p>Настройка логов на окружении, где размещены ваши сервисы позволяет сэкономить многие часы отладки и поиска неисправностей в продакшене. На самом деле, поднять полноценную систему логирования на сервере с Docker - не самая сложная задача. Давайте посмотрим как это сделать.</p> </p> </div>
+        </article></div>
+        <div class="post"><article class="">
+                <header class="post-header"> <h2 class="post-title"><a href="https://rocanten.ru/avtomaticheskii-deploi-fastapi-v-iandeks-oblako-pri-pomoshchi-github-actions-i-docker.html">Автоматический деплой FastAPI в Яндекс Облако при помощи Github Actions и Docker</a><h2><a class="post-header" href="https://rocanten.ru/avtomaticheskii-deploi-fastapi-v-iandeks-oblako-pri-pomoshchi-github-actions-i-docker.html" rel="bookmark" title="Permalink to Автоматический деплой FastAPI в Яндекс Облако при помощи Github Actions и Docker"></a> </header>
+                <p class="post-meta">
+                    <time class="published" datetime="2022-08-31T10:20:00+03:00"> Wed 31 August 2022 </time>
+                    <a class="post-category button-tag"> devops </a>
+                </p><!-- /.post-info -->
+                <div class="post-description"> <p><p>При помощи данного рецепта можно значительно упростить себе жизнь и настроить автодеплой в Яндекс Облако(да и в любое другое облако) приложения на основе FastAPI.</p> </p> </div>
+        </article></div>
+</div><!-- /#posts-list -->
+</section><!-- /#content -->
+    </main>
 </body>
 </html>
